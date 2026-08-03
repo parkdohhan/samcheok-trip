@@ -1,0 +1,5 @@
+.vercel
+.env*
+
+# GitHub Desktop이 실수로 만든 빈 하위 저장소 — 폴더를 지우면 이 줄도 삭제하세요
+/Trip_plan/
