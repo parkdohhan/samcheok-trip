@@ -13,7 +13,6 @@ const el = (tag, cls, html) => {
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const cat = (k) => CATEGORIES[k] || { label: k || "", icon: "📍", color: "#8aa3b0" };
-const won = (n) => "₩" + Number(n).toLocaleString("ko-KR");
 const emptyBox = (msg) => el("div", "empty", msg);
 
 const STORE_KEY = "samcheok-2026-08";
@@ -64,7 +63,6 @@ const VIEWS = [
   { id: "map",    icon: "🗺️", label: "지도",    title: "동선 지도"  },
   { id: "stay",   icon: "🏨",  label: "숙박",    title: "숙소"       },
   { id: "food",   icon: "🍜",  label: "맛집",    title: "맛집"       },
-  { id: "budget", icon: "💰",  label: "예산",    title: "예산"       },
   { id: "prep",   icon: "🎒",  label: "준비물",  title: "준비물"     }
 ];
 
@@ -87,11 +85,6 @@ const VIEW_META = {
     const n = (f.local || []).length + (f.candidates || []).length;
     return { text: n ? `${n}곳 정리됨` : "맛집 미정", done: n > 0 };
   },
-  budget() {
-    const rows = (TRIP.budget || {}).rows || [];
-    const sum  = rows.reduce((a, r) => a + (Number(r.amount) || 0), 0);
-    return { text: rows.length ? `${won(sum)} 예상` : "예산 미정", done: rows.length > 0 };
-  },
   prep() {
     const n = (TRIP.checklist || []).reduce((a, g) => a + (g.items || []).length, 0);
     return { text: n ? `${n}개 항목` : "준비물 미정", done: n > 0 };
@@ -99,6 +92,16 @@ const VIEW_META = {
 };
 
 let mapReady = false;
+
+/* 현재 히스토리 항목이 앱 안에서 몇 번째로 쌓인 것인지 (0 = 진입 지점) */
+const navDepth = () =>
+  (history.state && typeof history.state.d === "number") ? history.state.d : 0;
+
+/* 뒤로 가기: 앱 안에 쌓인 이력이 있으면 되돌아가고, 없으면 홈으로 */
+function goBack() {
+  if (navDepth() > 0) history.back();
+  else showView("home");
+}
 
 function showView(id, push) {
   const v = VIEWS.find((x) => x.id === id) || VIEWS[0];
@@ -113,7 +116,14 @@ function showView(id, push) {
   });
 
   $("#topbar-sub").textContent = v.title;
-  if (push !== false && location.hash.slice(1) !== v.id) location.hash = v.id;
+  $("#topbar-back").hidden = v.id === "home";
+
+  if (push !== false && location.hash.slice(1) !== v.id) {
+    // 깊이를 먼저 읽어둔다 — hash를 바꾸는 순간 새 항목(state=null)이 쌓이기 때문
+    const d = navDepth();
+    location.hash = v.id;
+    history.replaceState({ d: d + 1 }, "");
+  }
   window.scrollTo({ top: 0 });
 
   // 지도는 처음 열릴 때 초기화 (숨겨진 상태로 만들면 크기가 깨짐)
@@ -153,7 +163,10 @@ function renderNav() {
   $("#qnav-count").textContent = `${done} / ${total}`;
   $("#qnav-prog").style.width = Math.round((done / total) * 100) + "%";
 
+  $("#topbar-back").addEventListener("click", goBack);
+
   window.addEventListener("hashchange", () => showView(location.hash.slice(1), false));
+  history.replaceState({ d: navDepth() }, "");   // 진입 지점 깊이 고정
   showView(location.hash.slice(1) || "home", false);
 }
 
@@ -438,29 +451,6 @@ function renderFood() {
   $("#food-note").textContent = f.note || "";
 }
 
-/* ===================== 예산 ===================== */
-function renderBudget() {
-  const bg   = TRIP.budget || {};
-  const rows = bg.rows || [];
-  const tbl  = $("#budget");
-
-  if (!rows.length) {
-    tbl.closest(".table-wrap").replaceWith(emptyBox("예산 항목이 아직 비어 있어요."));
-    $("#budget-total").remove();
-    return;
-  }
-  tbl.innerHTML =
-    "<thead><tr><th>항목</th><th>메모</th><th style='text-align:right'>금액</th></tr></thead><tbody>" +
-    rows.map((r) =>
-      `<tr><td>${esc(r.name)}</td><td>${esc(r.memo || "")}</td>` +
-      `<td class="num">${r.amount ? won(r.amount) : "-"}</td></tr>`).join("") +
-    "</tbody>";
-
-  const sum = rows.reduce((a, r) => a + (Number(r.amount) || 0), 0);
-  $("#budget-total").innerHTML =
-    `<span>합계</span><span>${esc(bg.total || won(sum))}</span>`;
-}
-
 /* ===================== 준비물 ===================== */
 function renderChecklist() {
   const box   = $("#checklist");
@@ -505,7 +495,7 @@ function render() {
   // 한 섹션이 실패해도 나머지는 그려지도록
   // 지도(renderMap)는 '지도' 탭을 처음 열 때 초기화됩니다 — showView() 참고
   [renderHero, renderBookings, renderDays,
-   renderStay, renderFood, renderBudget, renderChecklist, renderNav]
+   renderStay, renderFood, renderChecklist, renderNav]
     .forEach((fn) => {
       try { fn(); } catch (e) { console.error(fn.name, e); }
     });

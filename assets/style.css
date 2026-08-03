@@ -90,6 +90,16 @@ a{color:var(--brand-dark)}
   border-bottom:1px solid rgba(197,224,236,.55);
 }
 .topbar-left{display:flex;align-items:center;gap:9px;min-width:0}
+.topbar-back{
+  flex:none;width:30px;height:30px;padding:0;margin-left:-4px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(197,224,236,.9);border-radius:10px;
+  background:#fff;color:#2f9dc0;
+  font-size:22px;font-weight:800;line-height:1;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.topbar-back:active{background:#eaf6fa;transform:scale(.94)}
+.topbar-back[hidden]{display:none}
 .topbar-emoji{font-size:19px;line-height:1;flex:none}
 .topbar-txt{min-width:0}
 .topbar-title{font-size:14.5px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
