@@ -2,6 +2,9 @@
 
 2026.08.11(화) ~ 08.12(수) · 모바일 웹앱
 
+🔗 **배포 주소** — https://samcheok-trip-iota.vercel.app
+📦 **저장소** — https://github.com/parkdohhan/samcheok-trip
+
 ## 구조
 
 ```
@@ -38,51 +41,32 @@ npx serve .
 
 또는 `index.html` 을 브라우저로 바로 열어도 됩니다.
 
-## Vercel 배포
+## 배포 (설정 완료됨)
 
-### 방법 A — CLI (git 저장소 없이 바로 올리기, 제일 빠름)
-
-```bash
-npm i -g vercel     # 최초 1회
-cd e:\Trip_plan
-vercel login        # 이메일/깃허브 계정으로 로그인
-vercel              # 미리보기 URL 생성
-vercel --prod       # 실서비스 URL로 배포
-```
-
-`vercel` 첫 실행 시 물어보는 것들 — 전부 기본값(엔터)으로 넘기면 됩니다.
-
-```
-Set up and deploy? ................ Y
-Which scope? ...................... (본인 계정 선택)
-Link to existing project? ......... N
-Project name? ..................... trip-plan   (URL이 됨)
-In which directory is your code? .. ./
-Modify these settings? ............ N
-```
-
-Framework Preset 은 **Other**, 빌드 명령·아웃풋 디렉터리는 비워둡니다 (정적 사이트라 빌드 없음).
-
-### 방법 B — GitHub 연동 (푸시할 때마다 자동 배포)
+GitHub 저장소가 Vercel 프로젝트 `samcheok-trip` 에 연결돼 있습니다.
+**`main` 에 push 하면 자동으로 프로덕션 재배포됩니다.**
 
 ```bash
 cd e:\Trip_plan
-git init
-git add .
-git commit -m "삼척 여행 대시보드"
-git branch -M main
-git remote add origin https://github.com/<계정>/<저장소>.git
-git push -u origin main
+# assets/data.js 수정 후
+git add -A
+git commit -m "일정 추가"
+git push
 ```
 
-그다음 [vercel.com/new](https://vercel.com/new) → 저장소 Import → Framework Preset **Other** → Deploy.
-이후 `git push` 만 하면 자동 재배포됩니다.
+수동으로 즉시 배포하고 싶으면:
 
-### 배포 후
+```bash
+vercel --prod
+```
 
-- 무료 도메인: `https://<프로젝트명>.vercel.app`
-- 내용 수정은 `assets/data.js` 만 고치고 → `vercel --prod` (또는 `git push`)
+빌드 설정은 없습니다 (정적 사이트, Framework Preset = **Other**). `vercel.json` 이 캐시 헤더만 잡아줍니다.
+
+### 참고
+
+- 무료 도메인: `https://samcheok-trip-iota.vercel.app`
 - 폰에서 열고 **홈 화면에 추가** 하면 앱처럼 전체화면으로 뜹니다
+- `.vercel/`, `.env.local` 은 `.gitignore` 로 제외됩니다 (Vercel 토큰 포함되므로 커밋 금지)
 
 ## 비밀번호
 
