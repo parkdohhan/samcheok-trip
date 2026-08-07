@@ -86,8 +86,9 @@ const VIEW_META = {
     return { text: n ? `${n}곳 정리됨` : "맛집 미정", done: n > 0 };
   },
   prep() {
-    const n = (TRIP.checklist || []).reduce((a, g) => a + (g.items || []).length, 0);
-    return { text: n ? `${n}개 항목` : "준비물 미정", done: n > 0 };
+    const keys = chkKeys();
+    const done = keys.filter((k) => chkSaved[k]).length;
+    return { text: keys.length ? `${done}/${keys.length}개 체크` : "준비물 미정", done: keys.length > 0 };
   }
 };
 
@@ -155,6 +156,7 @@ function renderNav() {
       `<span class="qnav-body"><span class="qnav-label">${esc(v.title)}</span>` +
       `<span class="qnav-meta">${esc(m.text)}</span></span>`);
     item.type = "button";
+    item.dataset.view = v.id;
     item.addEventListener("click", () => showView(v.id));
     grid.appendChild(item);
   });
@@ -164,6 +166,7 @@ function renderNav() {
   $("#qnav-prog").style.width = Math.round((done / total) * 100) + "%";
 
   $("#topbar-back").addEventListener("click", goBack);
+  $("#prep-more")?.addEventListener("click", () => showView("prep"));
 
   window.addEventListener("hashchange", () => showView(location.hash.slice(1), false));
   history.replaceState({ d: navDepth() }, "");   // 진입 지점 깊이 고정
@@ -452,41 +455,82 @@ function renderFood() {
 }
 
 /* ===================== 준비물 ===================== */
-function renderChecklist() {
-  const box   = $("#checklist");
-  let saved = {};
-  try { saved = JSON.parse(store.get(STORE_KEY + ":chk") || "{}"); } catch { saved = {}; }
-  const groups = (TRIP.checklist || []).filter((g) => (g.items || []).length);
+/* 홈 피드와 준비물 탭에 같은 목록을 두 벌 그리고, 체크 상태는 저장 키로 묶어 함께 움직입니다.
+   저장 키는 두 곳이 공유하고, DOM id 만 접두사로 구분합니다. */
+let chkSaved = {};
 
+const chkGroups = () => (TRIP.checklist || []).filter((g) => (g.items || []).length);
+/* 저장 키는 순번이 아니라 '그룹|항목' 글자로 잡습니다 —
+   목록에서 항목을 지우거나 순서를 바꿔도 체크가 옆줄로 옮겨붙지 않게. */
+const chkKey    = (g, item) => `${g.group}|${item}`;
+const chkKeys   = () => chkGroups().flatMap((g) => g.items.map((it) => chkKey(g, it)));
+
+function paintChkProgress() {
+  const keys = chkKeys();
+  const done = keys.filter((k) => chkSaved[k]).length;
+  $("#prep-count").textContent = keys.length ? `${done} / ${keys.length}` : "–";
+  $("#prep-prog").style.width  = keys.length ? Math.round((done / keys.length) * 100) + "%" : "0%";
+
+  // 홈 카테고리 타일(준비물)도 같은 숫자를 보여줍니다 — 탭바 렌더 이후에만 존재
+  const tile = document.querySelector('.qnav-item[data-view="prep"] .qnav-meta');
+  if (tile && keys.length) tile.textContent = `${done}/${keys.length}개 체크`;
+}
+
+function setChk(key, on) {
+  chkSaved[key] = on;
+  store.set(STORE_KEY + ":chk", JSON.stringify(chkSaved));
+  document.querySelectorAll("input[data-chk]").forEach((c) => {
+    if (c.dataset.chk === key) c.checked = on;
+  });
+  paintChkProgress();
+}
+
+function buildChecklist(box, prefix) {
+  const groups = chkGroups();
   if (!groups.length) {
     box.appendChild(emptyBox("준비물 목록이 아직 비어 있어요."));
-    $("#checklist-reset").remove();
-    return;
+    return false;
   }
-
   groups.forEach((g, gi) => {
     const wrap = el("div", "chk-group");
     wrap.appendChild(el("div", "chk-head", esc(g.group)));
     g.items.forEach((item, ii) => {
-      const id  = `chk-${gi}-${ii}`;
+      const key = chkKey(g, item);
       const row = el("div", "chk-item");
       const cb  = el("input");
-      cb.type = "checkbox"; cb.id = id; cb.checked = !!saved[id];
-      cb.addEventListener("change", () => {
-        saved[id] = cb.checked;
-        store.set(STORE_KEY + ":chk", JSON.stringify(saved));
-      });
+      cb.type = "checkbox";
+      cb.id = `${prefix}-${gi}-${ii}`;
+      cb.dataset.chk = key;
+      cb.checked = !!chkSaved[key];
+      cb.addEventListener("change", () => setChk(key, cb.checked));
       const lb = el("label", null, esc(item));
-      lb.htmlFor = id;
+      lb.htmlFor = cb.id;
       row.append(cb, lb);
       wrap.appendChild(row);
     });
     box.appendChild(wrap);
   });
+  return true;
+}
+
+function renderChecklist() {
+  try { chkSaved = JSON.parse(store.get(STORE_KEY + ":chk") || "{}"); } catch { chkSaved = {}; }
+
+  const ok = buildChecklist($("#checklist"), "chk");
+  buildChecklist($("#checklist-home"), "chkh");
+  paintChkProgress();
+
+  if (!ok) {
+    $("#checklist-reset").remove();
+    $("#prep-more").remove();
+    return;
+  }
 
   $("#checklist-reset").addEventListener("click", () => {
+    chkSaved = {};
     store.del(STORE_KEY + ":chk");
-    box.querySelectorAll("input[type=checkbox]").forEach((c) => (c.checked = false));
+    document.querySelectorAll("input[data-chk]").forEach((c) => (c.checked = false));
+    paintChkProgress();
   });
 }
 
