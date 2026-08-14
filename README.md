@@ -5,7 +5,7 @@
 | 여행 | 주소 | 기간 |
 |---|---|---|
 | 🌺 **오키나와 3박 4일** | https://samcheok-trip-iota.vercel.app | 2026.08.31(월) ~ 09.03(목) |
-| 🌊 삼척 1박 2일 (지난 여행) | https://samcheok-trip-iota.vercel.app/samcheok | 2026.08.11(화) ~ 08.12(수) |
+| 🌊 삼척 1박 2일 (지난 여행) | https://samcheok-trip-iota.vercel.app/samcheok/ | 2026.08.11(화) ~ 08.12(수) |
 
 📦 **저장소** — https://github.com/parkdohhan/samcheok-trip
 
