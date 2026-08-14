@@ -410,6 +410,13 @@ function drawMarkers() {
     return okDay && okCat && p.lat && p.lng;
   });
 
+  // 번호와 동선은 방문 순서를 따라야 합니다 — data.js 의 seq[dayId] 기준,
+  // 안 적힌 곳은 뒤로 (filter 가 만든 새 배열이라 TRIP.places 는 그대로).
+  if (dayMode) {
+    const order = (p) => (p.seq && p.seq[mapState.day] != null) ? p.seq[mapState.day] : 9999;
+    list.sort((a, b) => order(a) - order(b));
+  }
+
   if (LAYER) {
     LAYER.clearLayers();
     const bounds = [];
