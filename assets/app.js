@@ -1,6 +1,7 @@
 /* =========================================================
-   삼척 여행 대시보드 — 렌더링 로직
-   (데이터는 assets/data.js 만 수정하면 됩니다)
+   여행 대시보드 — 공용 렌더링 로직
+   ─ 여행별 내용은 각자의 data.js (TRIP / CATEGORIES) 에만 있습니다.
+   ─ 이 파일은 오키나와(/)와 삼척(/samcheok/)이 함께 씁니다.
    ========================================================= */
 
 const $  = (s) => document.querySelector(s);
@@ -15,7 +16,16 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
 const cat = (k) => CATEGORIES[k] || { label: k || "", icon: "📍", color: "#8aa3b0" };
 const emptyBox = (msg) => el("div", "empty", msg);
 
-const STORE_KEY = "samcheok-2026-08";
+/* 주소 검색 링크 — 국내는 카카오맵, 해외는 구글맵이 잘 찾습니다.
+   여행별로 data.js 의 meta.mapProvider 로 고릅니다 ("kakao" | "google"). */
+const useGoogleMap = () => (TRIP.meta && TRIP.meta.mapProvider) === "google";
+const mapLabel = () => (useGoogleMap() ? "🗺️ 구글맵" : "🗺️ 카카오맵");
+const mapUrl = (addr) => useGoogleMap()
+  ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(addr)
+  : "https://map.kakao.com/link/search/" + encodeURIComponent(addr);
+
+/* 여행마다 달라야 함 — 안 넣으면 다른 여행의 체크 상태와 섞입니다 */
+const STORE_KEY = (TRIP.meta && TRIP.meta.storeKey) || "trip";
 
 /* localStorage 안전 래퍼 — file:// 나 시크릿 모드에서 막혀도 앱이 죽지 않게 */
 const mem = {};
@@ -77,8 +87,13 @@ const VIEW_META = {
     return { text: n ? `장소 ${n}곳` : "장소 미정", done: n > 0 };
   },
   stay() {
-    const s = (TRIP.bookings || []).filter((b) => b.type === "hotel");
-    return { text: s.length ? s[0].title : "숙소 미정", done: s.length > 0 };
+    const s = (TRIP.stays && TRIP.stays.length)
+      ? TRIP.stays
+      : (TRIP.bookings || []).filter((b) => b.type === "hotel");
+    return {
+      text: s.length ? (s.length > 1 ? `${s.length}곳 · ${s[0].title}` : s[0].title) : "숙소 미정",
+      done: s.length > 0
+    };
   },
   food() {
     const f = TRIP.food || {};
@@ -225,8 +240,8 @@ function renderBookings() {
       acts.appendChild(a);
     }
     if (b.addr) {
-      const a = el("a", "mini-btn", "🗺️ 지도");
-      a.href = "https://map.kakao.com/link/search/" + encodeURIComponent(b.addr);
+      const a = el("a", "mini-btn", mapLabel());
+      a.href = mapUrl(b.addr);
       a.target = "_blank"; a.rel = "noopener";
       acts.appendChild(a);
     }
@@ -394,23 +409,44 @@ function drawList(list) {
   });
 }
 
-/* ===================== 숙소 ===================== */
+/* ===================== 숙소 =====================
+   숙소마다 카드 하나. rows: [{label, value}] 로 라벨-값을 나열합니다.
+   값이 "" 이면 '미확정' 으로 흐리게 표시 — 빈칸이면 뭘 더 채워야 할지 안 보이므로.
+   rows 가 없으면 예전 형식(lines 배열)도 그대로 렌더합니다.            */
 function renderStay() {
   const box  = $("#stay");
-  const stay = (TRIP.bookings || []).filter((b) => b.type === "hotel");
+  const stay = (TRIP.stays && TRIP.stays.length)
+    ? TRIP.stays
+    : (TRIP.bookings || []).filter((b) => b.type === "hotel");
   if (!stay.length) return box.appendChild(emptyBox("숙소 정보가 아직 없어요."));
 
+  if (TRIP.stayNote) box.appendChild(el("p", "sec-sub", esc(TRIP.stayNote)));
+
   stay.forEach((s) => {
-    box.appendChild(el("div", "stay-name", esc(s.title)));
-    (s.lines || []).forEach((l) => box.appendChild(el("div", "stay-line", esc(l))));
+    const card = el("div", "stay-card");
+    card.appendChild(el("div", "stay-name",
+      esc([s.nights, s.title].filter(Boolean).join(" · "))));
+
+    if ((s.rows || []).length) {
+      const dl = el("dl", "stay-rows");
+      s.rows.forEach((r) => {
+        dl.appendChild(el("dt", "stay-dt", esc(r.label)));
+        dl.appendChild(r.value
+          ? el("dd", "stay-dd", esc(r.value))
+          : el("dd", "stay-dd stay-tbd", "미확정"));
+      });
+      card.appendChild(dl);
+    }
+    (s.lines || []).forEach((l) => card.appendChild(el("div", "stay-line", esc(l))));
+
     const acts = el("div", "booking-acts");
     if (s.tel) {
       const a = el("a", "mini-btn", "📞 전화하기"); a.href = "tel:" + s.tel;
       acts.appendChild(a);
     }
     if (s.addr) {
-      const a = el("a", "mini-btn", "🗺️ 카카오맵");
-      a.href = "https://map.kakao.com/link/search/" + encodeURIComponent(s.addr);
+      const a = el("a", "mini-btn", mapLabel());
+      a.href = mapUrl(s.addr);
       a.target = "_blank"; a.rel = "noopener";
       const b = el("a", "mini-btn", "📋 주소 복사");
       b.href = "javascript:void(0)";
@@ -421,7 +457,8 @@ function renderStay() {
       });
       acts.append(a, b);
     }
-    box.appendChild(acts);
+    if (acts.children.length) card.appendChild(acts);
+    box.appendChild(card);
   });
 }
 

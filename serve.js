@@ -16,10 +16,13 @@ const MIME = {
 };
 
 http.createServer((req, res) => {
-  let rel = decodeURIComponent(req.url.split("?")[0]);
-  if (rel === "/") rel = "/index.html";
-  const file = path.join(ROOT, path.normalize(rel).replace(/^[\\/]+/, ""));
+  const rel = decodeURIComponent(req.url.split("?")[0]);
+  let file = path.join(ROOT, path.normalize(rel).replace(/^[\\/]+/, ""));
   if (!file.startsWith(ROOT)) { res.writeHead(403).end("forbidden"); return; }
+
+  // 디렉터리(/ 또는 /samcheok/)면 그 안의 index.html — Vercel 과 같은 동작
+  try { if (fs.statSync(file).isDirectory()) file = path.join(file, "index.html"); }
+  catch { /* 없는 경로는 아래 readFile 이 404 처리 */ }
 
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404, { "content-type": "text/plain; charset=utf-8" }).end("404"); return; }
