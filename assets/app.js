@@ -400,6 +400,9 @@ function renderMap() {
 }
 
 function drawMarkers() {
+  // 이번 렌더 세대. 앞선 경로 요청이 늦게 도착하면 이 번호가 안 맞아 버려집니다
+  // (Day → 전체 로 바꿨을 때 이전 Day 의 경로가 남던 문제)
+  const seq = ++ROUTE_SEQ;
   const dayMode = mapState.day !== "all";      // 하루만 볼 때는 순번 + 동선을 그립니다
   const list = (TRIP.places || []).filter((p) => {
     const okDay = mapState.day === "all" || (p.day || []).includes(mapState.day);
@@ -429,7 +432,7 @@ function drawMarkers() {
     else if (bounds.length === 1) MAP.setView(bounds[0], 13);
   }
 
-  if (dayMode && list.length > 1) drawRoute(list);
+  if (dayMode && list.length > 1) drawRoute(list, seq);
   else setRouteMeta(list.length, null, null);
 
   drawList(list, dayMode);
@@ -472,7 +475,7 @@ function setRouteMeta(count, straightKm, road) {
     `🛣️ 실제 도로 경로: ${road.km.toFixed(1)} km · ⏱ 추정 주행 ${h ? h + "시간 " : ""}${m}분`;
 }
 
-function drawRoute(list) {
+function drawRoute(list, seq) {
   const pts = list.map((p) => [p.lat, p.lng]);
   const straightKm = pts.slice(1).reduce((a, p, i) => a + haversineKm(pts[i], p), 0);
 
@@ -481,7 +484,6 @@ function drawRoute(list) {
   }).addTo(LAYER);
   setRouteMeta(list.length, straightKm, null);
 
-  const seq = ++ROUTE_SEQ;
   const coords = list.map((p) => `${p.lng},${p.lat}`).join(";");
   fetch(`https://router.project-osrm.org/route/v1/driving/${coords}` +
         `?overview=full&geometries=geojson`)
