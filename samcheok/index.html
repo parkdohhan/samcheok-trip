@@ -39,6 +39,11 @@
     <span class="topbar-dday" id="topbar-dday">–</span>
   </header>
 
+  <!-- 카테고리 내비 -->
+  <nav class="topnav" aria-label="카테고리">
+    <div class="topnav-inner" id="tabbar"></div>
+  </nav>
+
   <!-- ========================================================
        ① 한눈에 보기
        ======================================================== -->
@@ -50,21 +55,33 @@
       <h1 class="hero-title" id="hero-title"></h1>
       <p class="hero-desc" id="hero-desc"></p>
 
-      <div class="dday">
-        <div class="dday-label">D-DAY</div>
-        <div class="dday-num" id="dday-num">–</div>
-        <div class="dday-emoji">🌊</div>
+      <div class="hero-row">
+        <div class="dday">
+          <div class="dday-label">D-DAY</div>
+          <div class="dday-num" id="dday-num">–</div>
+          <div class="dday-emoji">🌊</div>
+        </div>
+        <p class="hero-depart" id="hero-depart"></p>
       </div>
-
-      <p class="hero-depart" id="hero-depart"></p>
       <div class="chips" id="hero-chips"></div>
       <div class="chips chips-file" id="hero-files"></div>
     </div>
 
-    <!-- 확정 예약 -->
+    <!-- 한눈에 보기 -->
     <div class="card">
-      <h2 class="sec-title">✅ 확정 예약</h2>
-      <div id="bookings" class="booking-list"></div>
+      <h2 class="sec-title">한눈에 보기</h2>
+      <p class="sec-sub" id="ov-sub"></p>
+      <div class="ov-banner" id="ov-banner"></div>
+      <div class="ov-grid">
+        <div class="ov-col">
+          <h3 class="ov-h">✅ 확정 예약</h3>
+          <div id="bookings" class="booking-list"></div>
+        </div>
+        <div class="ov-col">
+          <h3 class="ov-h">🗓️ 마지막 날</h3>
+          <div id="ov-lastday"></div>
+        </div>
+      </div>
     </div>
 
     <!-- 준비물 (홈 피드) -->
@@ -120,6 +137,7 @@
       <div class="map-meta">
         <div class="map-meta-title" id="map-meta-title"></div>
         <div class="map-meta-sub" id="map-meta-sub"></div>
+        <div class="map-route" id="map-route"></div>
       </div>
       <div id="map"></div>
       <div id="map-list" class="place-list"></div>
@@ -168,10 +186,6 @@
     <div id="foot-text"></div>
   </footer>
 
-  <!-- 하단 탭 바 -->
-  <nav class="tabbar" aria-label="카테고리">
-    <div class="tabbar-inner" id="tabbar"></div>
-  </nav>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

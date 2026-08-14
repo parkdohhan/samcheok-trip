@@ -10,6 +10,7 @@ const TRIP = {
   meta: {
     storeKey: "samcheok-2026-08",     // localStorage 네임스페이스 (여행마다 달라야 함)
     password: "0811",                 // 접근 비밀번호
+    emoji: "🌊",                      // 배너·타이틀용
     badge: "2026 SUMMER",             // 히어로 상단 작은 라벨
     title: "삼척 1박 2일",            // 큰 제목 (줄바꿈은 \n)
     subtitle: "바다 & 휴식",

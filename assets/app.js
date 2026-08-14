@@ -213,6 +213,45 @@ function renderHero() {
     files.appendChild(el("span", "chip", `${f.icon || "📄"} ${esc(f.name)}`)));
 }
 
+/* ===================== 한눈에 보기 =====================
+   출발 전/여행 중/종료 배너 + 마지막 날 타임라인.
+   마지막 날은 days 의 맨 뒤를 그대로 씁니다.                 */
+function renderOverview() {
+  const m = TRIP.meta || {};
+  const days = TRIP.days || [];
+  const last = days[days.length - 1];
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const start = new Date(m.startDate + "T00:00:00");
+  const end   = new Date((m.endDate || m.startDate) + "T00:00:00");
+  const diff  = Math.round((start - today) / 86400000);
+
+  let title, sub, note;
+  if (today > end)        { title = `여행 종료 ${m.emoji || "🌺"}`; sub = "즐거운 여행이었기를"; note = "귀국 후"; }
+  else if (today >= start){ title = "여행 중 ✈️";  sub = "오늘 일정은 '일정' 탭에서";      note = "여행 중"; }
+  else                    { title = `출발까지 D-${diff}`; sub = "확정된 것과 아직 안 정해진 것"; note = "출발 전"; }
+
+  $("#ov-sub").textContent = note;
+  const banner = $("#ov-banner");
+  banner.appendChild(el("div", "ov-banner-t", esc(title)));
+  banner.appendChild(el("div", "ov-banner-s",
+    esc(`${m.startDate} ~ ${m.endDate || m.startDate} · ${sub}`)));
+
+  const box = $("#ov-lastday");
+  if (!last || !(last.items || []).length) {
+    box.appendChild(emptyBox("마지막 날 일정이 아직 비어 있어요."));
+    return;
+  }
+  const tl = el("div", "timeline");
+  last.items.forEach((it) => {
+    const r = el("div", "tl-row");
+    r.appendChild(el("div", "tl-time", esc(it.time || "")));
+    r.appendChild(el("div", "tl-text", esc(it.text)));
+    tl.appendChild(r);
+  });
+  box.appendChild(tl);
+}
+
 /* ===================== 확정 예약 ===================== */
 const BOOK_ICON = {
   flight: "✈️", hotel: "🏨", car: "🚗", parking: "🅿️",
@@ -361,6 +400,7 @@ function renderMap() {
 }
 
 function drawMarkers() {
+  const dayMode = mapState.day !== "all";      // 하루만 볼 때는 순번 + 동선을 그립니다
   const list = (TRIP.places || []).filter((p) => {
     const okDay = mapState.day === "all" || (p.day || []).includes(mapState.day);
     const okCat = mapState.cats.has("all") || mapState.cats.has(p.cat);
@@ -370,15 +410,18 @@ function drawMarkers() {
   if (LAYER) {
     LAYER.clearLayers();
     const bounds = [];
-    list.forEach((p) => {
+    list.forEach((p, i) => {
       const c = cat(p.cat);
+      const inner = dayMode ? `${i + 1}` : c.icon;
       const icon = L.divIcon({
         className: "",
-        html: `<div class="pin" style="background:${c.color}"><span>${c.icon}</span></div>`,
+        html: `<div class="pin${dayMode ? " pin-num" : ""}" style="background:${c.color}">` +
+              `<span>${inner}</span></div>`,
         iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28]
       });
       L.marker([p.lat, p.lng], { icon })
-        .bindPopup(`<b>${esc(p.name)}</b>${p.memo ? "<br>" + esc(p.memo) : ""}`)
+        .bindPopup(`<b>${dayMode ? (i + 1) + ". " : ""}${esc(p.name)}</b>` +
+                   `${p.memo ? "<br>" + esc(p.memo) : ""}`)
         .addTo(LAYER);
       bounds.push([p.lat, p.lng]);
     });
@@ -386,23 +429,95 @@ function drawMarkers() {
     else if (bounds.length === 1) MAP.setView(bounds[0], 13);
   }
 
-  $("#map-meta-sub").textContent = `${list.length}개 장소 표시`;
-  drawList(list);
+  if (dayMode && list.length > 1) drawRoute(list);
+  else setRouteMeta(list.length, null, null);
+
+  drawList(list, dayMode);
 }
 
-function drawList(list) {
+/* ---------- 동선 ----------
+   순서는 data.js 의 places 배열 순서입니다 — 방문 순서대로 적어두면 그대로 이어집니다.
+   먼저 직선으로 즉시 그려 놓고, OSRM 이 응답하면 실제 도로 경로로 바꿔 그립니다. */
+let ROUTE_SEQ = 0;
+
+const haversineKm = (a, b) => {
+  const R = 6371, rad = (d) => (d * Math.PI) / 180;
+  const dLat = rad(b[0] - a[0]), dLng = rad(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
+function setRouteMeta(count, straightKm, road) {
+  const box = $("#map-meta-sub");
+  const bits = [`📍 ${count}개 장소`];
+  if (straightKm != null) bits.push(`🚗 직선 약 ${straightKm.toFixed(1)}km`);
+  box.textContent = bits.join(" · ");
+
+  const line = $("#map-route");
+  if (!line) return;
+  if (!road) {
+    line.textContent = straightKm == null
+      ? "Day 를 고르면 방문 순서와 도로 경로가 표시됩니다"
+      : "🛣️ 실제 도로 경로를 불러오는 중…";
+    line.hidden = false;
+    return;
+  }
+  if (road.failed) {
+    line.textContent = "🛣️ 도로 경로를 불러오지 못했어요 (직선 거리만 표시)";
+    return;
+  }
+  const h = Math.floor(road.min / 60), m = road.min % 60;
+  line.textContent =
+    `🛣️ 실제 도로 경로: ${road.km.toFixed(1)} km · ⏱ 추정 주행 ${h ? h + "시간 " : ""}${m}분`;
+}
+
+function drawRoute(list) {
+  const pts = list.map((p) => [p.lat, p.lng]);
+  const straightKm = pts.slice(1).reduce((a, p, i) => a + haversineKm(pts[i], p), 0);
+
+  const guide = L.polyline(pts, {
+    color: "#2f9dc0", weight: 3, opacity: .55, dashArray: "6 7"
+  }).addTo(LAYER);
+  setRouteMeta(list.length, straightKm, null);
+
+  const seq = ++ROUTE_SEQ;
+  const coords = list.map((p) => `${p.lng},${p.lat}`).join(";");
+  fetch(`https://router.project-osrm.org/route/v1/driving/${coords}` +
+        `?overview=full&geometries=geojson`)
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error("osrm " + r.status))))
+    .then((j) => {
+      if (seq !== ROUTE_SEQ) return;                    // 그 사이 다른 Day 로 바뀜
+      const route = j.routes && j.routes[0];
+      if (!route) throw new Error("no route");
+      LAYER.removeLayer(guide);
+      L.polyline(route.geometry.coordinates.map((c) => [c[1], c[0]]), {
+        color: "#2f9dc0", weight: 5, opacity: .85, lineJoin: "round"
+      }).addTo(LAYER);
+      setRouteMeta(list.length, straightKm,
+        { km: route.distance / 1000, min: Math.round(route.duration / 60) });
+    })
+    .catch(() => {
+      if (seq !== ROUTE_SEQ) return;
+      setRouteMeta(list.length, straightKm, { failed: true });
+    });
+}
+
+function drawList(list, numbered) {
   const box = $("#map-list");
   box.innerHTML = "";
   if (!list.length) {
     box.appendChild(emptyBox("표시할 장소가 없어요."));
     return;
   }
-  list.forEach((p) => {
+  list.forEach((p, i) => {
     const c = cat(p.cat);
     const row = el("div", "place");
-    row.appendChild(el("div", "place-ico", c.icon));
+    row.appendChild(numbered
+      ? el("div", "place-ico place-seq", `${i + 1}`)
+      : el("div", "place-ico", c.icon));
     const b = el("div", "place-body");
-    b.appendChild(el("div", "place-name", esc(p.name)));
+    b.appendChild(el("div", "place-name", (numbered ? `${c.icon} ` : "") + esc(p.name)));
     b.appendChild(el("div", "place-memo", esc(p.memo || "")));
     row.appendChild(b);
     box.appendChild(row);
@@ -575,7 +690,7 @@ function renderChecklist() {
 function render() {
   // 한 섹션이 실패해도 나머지는 그려지도록
   // 지도(renderMap)는 '지도' 탭을 처음 열 때 초기화됩니다 — showView() 참고
-  [renderHero, renderBookings, renderDays,
+  [renderHero, renderOverview, renderBookings, renderDays,
    renderStay, renderFood, renderChecklist, renderNav]
     .forEach((fn) => {
       try { fn(); } catch (e) { console.error(fn.name, e); }
