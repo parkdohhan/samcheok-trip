@@ -158,6 +158,8 @@ a{color:var(--brand-dark)}
   background:#fbfeff;border:1px solid var(--line);min-width:0;
 }
 .ov-h{font-size:14.5px;font-weight:800;letter-spacing:-.3px;color:var(--brand-dark)}
+.ov-day-sub{margin-top:4px;font-size:12.5px;color:var(--muted)}
+.ov-day-sub:empty{display:none}
 @media (max-width:760px){
   .ov-grid{grid-template-columns:1fr}
 }

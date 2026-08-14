@@ -214,22 +214,31 @@ function renderHero() {
 }
 
 /* ===================== 한눈에 보기 =====================
-   출발 전/여행 중/종료 배너 + 마지막 날 타임라인.
-   마지막 날은 days 의 맨 뒤를 그대로 씁니다.                 */
+   출발 전/여행 중/종료 배너 + 오늘 날짜에 맞는 하루 타임라인.
+   출발 전이면 첫날, 여행 중이면 오늘, 끝났으면 마지막 날을 보여줍니다.  */
 function renderOverview() {
   const m = TRIP.meta || {};
   const days = TRIP.days || [];
-  const last = days[days.length - 1];
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  const iso   = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-` +
+                       `${String(d.getDate()).padStart(2, "0")}`;
   const start = new Date(m.startDate + "T00:00:00");
   const end   = new Date((m.endDate || m.startDate) + "T00:00:00");
   const diff  = Math.round((start - today) / 86400000);
 
-  let title, sub, note;
-  if (today > end)        { title = `여행 종료 ${m.emoji || "🌺"}`; sub = "즐거운 여행이었기를"; note = "귀국 후"; }
-  else if (today >= start){ title = "여행 중 ✈️";  sub = "오늘 일정은 '일정' 탭에서";      note = "여행 중"; }
-  else                    { title = `출발까지 D-${diff}`; sub = "확정된 것과 아직 안 정해진 것"; note = "출발 전"; }
+  let title, sub, note, pick, head;
+  if (today > end) {
+    title = `여행 종료 ${m.emoji || "🌺"}`; sub = "즐거운 여행이었기를"; note = "귀국 후";
+    pick = days[days.length - 1];           head = "🗓️ 마지막 날";
+  } else if (today >= start) {
+    title = "여행 중 ✈️"; sub = "아래는 오늘 일정"; note = "여행 중";
+    pick = days.find((d) => d.date === iso(today)) || days[0];
+    head = "🗓️ 오늘";
+  } else {
+    title = `출발까지 D-${diff}`; sub = "확정된 것과 아직 안 정해진 것"; note = "출발 전";
+    pick = days[0];                         head = "🗓️ 첫날";
+  }
 
   $("#ov-sub").textContent = note;
   const banner = $("#ov-banner");
@@ -238,12 +247,19 @@ function renderOverview() {
     esc(`${m.startDate} ~ ${m.endDate || m.startDate} · ${sub}`)));
 
   const box = $("#ov-lastday");
-  if (!last || !(last.items || []).length) {
-    box.appendChild(emptyBox("마지막 날 일정이 아직 비어 있어요."));
+  if (!pick) {
+    box.appendChild(emptyBox("일정이 아직 비어 있어요."));
+    return;
+  }
+  $("#ov-day-h").textContent = `${head} · ${pick.label} (${pick.date} ${pick.dow || ""})`.trim();
+  $("#ov-day-sub").textContent = pick.title || "";
+
+  if (!(pick.items || []).length) {
+    box.appendChild(emptyBox("이 날 일정이 아직 비어 있어요."));
     return;
   }
   const tl = el("div", "timeline");
-  last.items.forEach((it) => {
+  pick.items.forEach((it) => {
     const r = el("div", "tl-row");
     r.appendChild(el("div", "tl-time", esc(it.time || "")));
     r.appendChild(el("div", "tl-text", esc(it.text)));
