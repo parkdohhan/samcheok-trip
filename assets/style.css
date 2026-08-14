@@ -126,8 +126,13 @@ a{color:var(--brand-dark)}
   box-shadow:var(--shadow);padding:7px;
 }
 .topnav-inner{
-  display:flex;gap:3px;justify-content:center;
+  display:flex;gap:3px;
   overflow-x:auto;scrollbar-width:none;
+  /* 넓으면 가운데, 좁으면 왼쪽부터.
+     그냥 center 로 두면 넘칠 때 왼쪽으로 삐져나간 첫 탭에 스크롤이 닿지 않습니다.
+     safe 를 모르는 브라우저는 앞줄(flex-start)로 떨어집니다. */
+  justify-content:flex-start;
+  justify-content:safe center;
 }
 .topnav-inner::-webkit-scrollbar{display:none}
 .tabbtn{
