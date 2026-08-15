@@ -489,6 +489,10 @@ function setRouteMeta(count, straightKm, road) {
     line.hidden = false;
     return;
   }
+  if (road.sea) {
+    line.textContent = "⛴️ 배로 건너는 구간이 있어 도로 경로 대신 직선으로 표시합니다";
+    return;
+  }
   if (road.failed) {
     line.textContent = "🛣️ 도로 경로를 불러오지 못했어요 (직선 거리만 표시)";
     return;
@@ -506,6 +510,13 @@ function drawRoute(list, seq) {
     color: "#2f9dc0", weight: 3, opacity: .55, dashArray: "6 7"
   }).addTo(LAYER);
   setRouteMeta(list.length, straightKm, null);
+
+  // 배로 건너는 날은 도로 경로를 묻지 않습니다 — OSRM 이 바다를 육로로 우회시켜
+  // 말도 안 되는 거리·시간(예: 14시간)을 돌려줍니다. 점선과 직선 거리만 남깁니다.
+  if (list.some((p) => p.cat === "ferry")) {
+    setRouteMeta(list.length, straightKm, { sea: true });
+    return;
+  }
 
   const coords = list.map((p) => `${p.lng},${p.lat}`).join(";");
   fetch(`https://router.project-osrm.org/route/v1/driving/${coords}` +
