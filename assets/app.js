@@ -455,7 +455,12 @@ function drawMarkers() {
     else if (bounds.length === 1) MAP.setView(bounds[0], 13);
   }
 
-  if (dayMode && list.length > 1) drawRoute(list, seq);
+  // 바다를 건너는 날인지는 '그날 전체 장소' 로 판단합니다.
+  // 필터로 배 핀만 꺼도 항로는 그대로이므로, 걸러진 목록으로 보면 판단이 뒤집힙니다.
+  const daySea = dayMode && (TRIP.places || []).some(
+    (p) => (p.day || []).includes(mapState.day) && p.cat === "ferry");
+
+  if (dayMode && list.length > 1) drawRoute(list, seq, daySea);
   else setRouteMeta(list.length, null, null);
 
   drawList(list, dayMode);
@@ -502,7 +507,7 @@ function setRouteMeta(count, straightKm, road) {
     `🛣️ 실제 도로 경로: ${road.km.toFixed(1)} km · ⏱ 추정 주행 ${h ? h + "시간 " : ""}${m}분`;
 }
 
-function drawRoute(list, seq) {
+function drawRoute(list, seq, daySea) {
   const pts = list.map((p) => [p.lat, p.lng]);
   const straightKm = pts.slice(1).reduce((a, p, i) => a + haversineKm(pts[i], p), 0);
 
@@ -513,7 +518,7 @@ function drawRoute(list, seq) {
 
   // 배로 건너는 날은 도로 경로를 묻지 않습니다 — OSRM 이 바다를 육로로 우회시켜
   // 말도 안 되는 거리·시간(예: 14시간)을 돌려줍니다. 점선과 직선 거리만 남깁니다.
-  if (list.some((p) => p.cat === "ferry")) {
+  if (daySea) {
     setRouteMeta(list.length, straightKm, { sea: true });
     return;
   }
@@ -526,6 +531,10 @@ function drawRoute(list, seq) {
       if (seq !== ROUTE_SEQ) return;                    // 그 사이 다른 Day 로 바뀜
       const route = j.routes && j.routes[0];
       if (!route) throw new Error("no route");
+      // 평균 15km/h 미만이면 차로 간 경로가 아닙니다 (페리 구간을 끼워 넣은 결과).
+      // ferry 로 표시하지 않은 바다 구간이 있어도 엉터리 숫자가 안 나가게 하는 안전망.
+      if (route.duration > 0 && (route.distance / 1000) / (route.duration / 3600) < 15)
+        throw new Error("implausible driving route");
       LAYER.removeLayer(guide);
       L.polyline(route.geometry.coordinates.map((c) => [c[1], c[0]]), {
         color: "#2f9dc0", weight: 5, opacity: .85, lineJoin: "round"
