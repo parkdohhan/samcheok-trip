@@ -327,11 +327,20 @@ a{color:var(--brand-dark)}
   background:#f8fbfd;border:1px solid var(--line);
 }
 .place-ico{font-size:17px;flex:none}
+.place-seqcol{
+  flex:none;width:40px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
 .place-seq{
   width:22px;height:22px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   background:var(--brand);color:#fff;font-size:12px;font-weight:800;
 }
+.place-time{
+  font-size:10px;font-weight:800;letter-spacing:-.3px;
+  color:var(--brand-dark);white-space:nowrap;
+}
+.pop-time{color:var(--brand-dark);font-weight:800}
 .place-body{flex:1;min-width:0}
 .place-name{font-size:14px;font-weight:700}
 .place-memo{margin-top:4px;font-size:12.5px;color:var(--ink-2);line-height:1.55}

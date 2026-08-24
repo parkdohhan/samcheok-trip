@@ -445,8 +445,10 @@ function drawMarkers() {
               `<span>${inner}</span></div>`,
         iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28]
       });
+      const t = dayMode ? placeTime(p) : "";
       L.marker([p.lat, p.lng], { icon })
         .bindPopup(`<b>${dayMode ? (i + 1) + ". " : ""}${esc(p.name)}</b>` +
+                   (t ? ` <span class="pop-time">${esc(t)}</span>` : "") +
                    `${p.memo ? "<br>" + esc(p.memo) : ""}`)
         .addTo(LAYER);
       bounds.push([p.lat, p.lng]);
@@ -548,6 +550,9 @@ function drawRoute(list, seq, daySea) {
     });
 }
 
+/* 그날 이 장소에 도착하는 시각 — data.js 의 places[].time[dayId] · 없으면 빈 문자열 */
+const placeTime = (p) => (p.time && p.time[mapState.day]) || "";
+
 function drawList(list, numbered) {
   const box = $("#map-list");
   box.innerHTML = "";
@@ -558,9 +563,15 @@ function drawList(list, numbered) {
   list.forEach((p, i) => {
     const c = cat(p.cat);
     const row = el("div", "place");
-    row.appendChild(numbered
-      ? el("div", "place-ico place-seq", `${i + 1}`)
-      : el("div", "place-ico", c.icon));
+    if (numbered) {
+      const t = placeTime(p);
+      const col = el("div", "place-seqcol");
+      col.appendChild(el("div", "place-seq", `${i + 1}`));
+      if (t) col.appendChild(el("div", "place-time", esc(t)));
+      row.appendChild(col);
+    } else {
+      row.appendChild(el("div", "place-ico", c.icon));
+    }
     const b = el("div", "place-body");
     b.appendChild(el("div", "place-name", (numbered ? `${c.icon} ` : "") + esc(p.name)));
     b.appendChild(el("div", "place-memo", esc(p.memo || "")));
