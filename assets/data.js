@@ -421,6 +421,207 @@ const TRIP = {
     note: "예약된 두 곳(류큐노우시 8/31 21:00 · 샤브샤브 류큐 9/1 19:00)은 확정입니다. 나머지는 후보이고, 【 】 안의 지역이 그날 행선지와 붙어 있는 곳입니다 — Day 2 케라마 점심은 투어에 포함(일식 카레라이스)이라 아하렌 식당은 참고용이고, 온나손은 Day 3 푸른동굴 전후로 쓰시면 됩니다."
   },
 
+  /* ---------- 5-1. 운전 매뉴얼 ---------- */
+  /* 이 데이터가 있으면 하단에 '운전' 탭이 생깁니다 (없는 여행은 탭 자체가 안 뜸).
+     figure 는 인라인 SVG 문자열 — 외부 이미지 없이 그려서 오프라인에서도 보입니다. */
+  driveGuide: {
+    sections: [
+      {
+        title: "1 · 좌측통행 — 모든 것의 기본",
+        figure: "<svg viewBox='0 0 320 160' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<rect x='70' y='0' width='180' height='160' rx='6' fill='#eef4f8'/>" +
+          "<line x1='76' y1='0' x2='76' y2='160' stroke='#c9d8e2' stroke-width='2'/>" +
+          "<line x1='244' y1='0' x2='244' y2='160' stroke='#c9d8e2' stroke-width='2'/>" +
+          "<line x1='160' y1='6' x2='160' y2='154' stroke='#e8b93b' stroke-width='3' stroke-dasharray='14 10'/>" +
+          "<rect x='96' y='78' width='34' height='58' rx='9' fill='#1f92b5'/>" +
+          "<rect x='101' y='88' width='24' height='12' rx='3' fill='#d9f0f8'/>" +
+          "<rect x='101' y='116' width='24' height='9' rx='3' fill='#d9f0f8'/>" +
+          "<polygon points='113,48 103,66 123,66' fill='#1f92b5'/>" +
+          "<rect x='188' y='24' width='34' height='58' rx='9' fill='#8aa3b0'/>" +
+          "<rect x='193' y='36' width='24' height='9' rx='3' fill='#e7eef2'/>" +
+          "<rect x='193' y='58' width='24' height='12' rx='3' fill='#e7eef2'/>" +
+          "<polygon points='205,110 195,92 215,92' fill='#8aa3b0'/>" +
+          "<text x='113' y='152' text-anchor='middle' font-size='12' font-weight='700' fill='#15718f'>내 차</text>" +
+          "<text x='205' y='16' text-anchor='middle' font-size='11' fill='#6b7a90'>반대 방향</text>" +
+          "<text x='34' y='84' text-anchor='middle' font-size='11' fill='#6b7a90'>왼쪽</text>" +
+          "<text x='286' y='84' text-anchor='middle' font-size='11' fill='#6b7a90'>오른쪽</text>" +
+          "</svg>",
+        caption: "핸들은 오른쪽, 차는 왼쪽 차선",
+        points: [
+          "역주행 실수는 대부분 주차장·골목에서 큰길로 나올 때 나옵니다 — 진입 직전 '왼쪽!' 하고 소리 내 확인",
+          "회전을 마친 뒤에도 반드시 왼쪽 차선으로 들어갑니다",
+          "8/31 렌터카 인수 직후 30분이 가장 위험한 시간대 — 영업소 → 존만비치 구간은 천천히"
+        ]
+      },
+      {
+        title: "2 · 교차로 — 좌회전은 작게, 우회전은 크게",
+        figure: "<svg viewBox='0 0 320 230' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<rect x='118' y='0' width='84' height='230' fill='#eef4f8'/>" +
+          "<rect x='0' y='73' width='320' height='84' fill='#eef4f8'/>" +
+          "<line x1='160' y1='0' x2='160' y2='66' stroke='#fff' stroke-width='3' stroke-dasharray='10 8'/>" +
+          "<line x1='160' y1='164' x2='160' y2='230' stroke='#fff' stroke-width='3' stroke-dasharray='10 8'/>" +
+          "<line x1='0' y1='115' x2='110' y2='115' stroke='#fff' stroke-width='3' stroke-dasharray='10 8'/>" +
+          "<line x1='210' y1='115' x2='320' y2='115' stroke='#fff' stroke-width='3' stroke-dasharray='10 8'/>" +
+          "<rect x='124' y='186' width='30' height='40' rx='8' fill='#1f92b5'/>" +
+          "<path d='M139 192 C139 150 120 136 60 136' fill='none' stroke='#2f9e8f' stroke-width='5' stroke-linecap='round'/>" +
+          "<polygon points='42,136 62,127 62,145' fill='#2f9e8f'/>" +
+          "<text x='14' y='172' font-size='12' font-weight='800' fill='#2f9e8f'>좌회전 = 작게</text>" +
+          "<path d='M139 192 C139 130 150 96 256 94' fill='none' stroke='#e8734a' stroke-width='5' stroke-linecap='round'/>" +
+          "<polygon points='276,94 256,85 256,103' fill='#e8734a'/>" +
+          "<text x='212' y='76' font-size='12' font-weight='800' fill='#e8734a'>우회전 = 크게</text>" +
+          "<rect x='166' y='16' width='30' height='40' rx='8' fill='#8aa3b0'/>" +
+          "<polygon points='181,72 172,58 190,58' fill='#8aa3b0'/>" +
+          "<text x='166' y='112' font-size='15'>⚠️</text>" +
+          "<text x='240' y='36' text-anchor='middle' font-size='11.5' font-weight='800' fill='#d4574a'>대향 직진차 먼저!</text>" +
+          "</svg>",
+        caption: "우회전이 반대 차선을 가로지릅니다 — 한국과 반대",
+        points: [
+          "좌회전이 가까운 회전, 우회전이 맞은편 차선을 가로지르는 큰 회전 — 한국과 반대입니다",
+          "빨간불엔 어느 방향으로도 진행 금지 — 한국식 '빨간불 우회전' 개념 자체가 없습니다",
+          "우회전 화살표(→) 신호가 있는 교차로가 많습니다 — 화살표가 켜질 때만 진행",
+          "유턴은 '転回禁止(전회금지)' 표지가 없으면 우회전 대기 위치에서 가능"
+        ]
+      },
+      {
+        title: "3 · 깜빡이와 와이퍼가 반대",
+        figure: "<svg viewBox='0 0 320 150' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<circle cx='160' cy='82' r='44' fill='none' stroke='#1b3a4b' stroke-width='9'/>" +
+          "<circle cx='160' cy='82' r='11' fill='#1b3a4b'/>" +
+          "<line x1='121' y1='82' x2='199' y2='82' stroke='#1b3a4b' stroke-width='7'/>" +
+          "<line x1='160' y1='93' x2='160' y2='122' stroke='#1b3a4b' stroke-width='7'/>" +
+          "<line x1='122' y1='68' x2='58' y2='54' stroke='#8aa3b0' stroke-width='8' stroke-linecap='round'/>" +
+          "<text x='58' y='34' text-anchor='middle' font-size='12.5' font-weight='800' fill='#6b7a90'>와이퍼</text>" +
+          "<text x='52' y='80' text-anchor='middle' font-size='11' fill='#8aa3b0'>왼쪽 레버</text>" +
+          "<line x1='198' y1='68' x2='262' y2='54' stroke='#e8734a' stroke-width='8' stroke-linecap='round'/>" +
+          "<text x='262' y='34' text-anchor='middle' font-size='12.5' font-weight='800' fill='#e8734a'>방향지시등</text>" +
+          "<text x='268' y='80' text-anchor='middle' font-size='11' fill='#e8734a'>오른쪽 레버</text>" +
+          "</svg>",
+        caption: "방향지시등 레버가 오른쪽 — 한국과 반대",
+        points: [
+          "깜빡이를 켜려다 와이퍼가 움직이면 정상적인 적응 과정입니다 — 당황하지 말고 다시",
+          "출발 전에 두 레버를 한 번씩 만져보고 출발하면 금방 익습니다"
+        ]
+      },
+      {
+        title: "4 · 止まれ(토마레) = 완전 정지 3초",
+        figure: "<svg viewBox='0 0 320 140' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<polygon points='100,16 220,16 160,124' fill='#d4574a'/>" +
+          "<polygon points='113,26 207,26 160,106' fill='none' stroke='#fff' stroke-width='4'/>" +
+          "<text x='160' y='58' text-anchor='middle' font-size='19' font-weight='800' fill='#fff'>止まれ</text>" +
+          "<text x='272' y='54' text-anchor='middle' font-size='12.5' font-weight='800' fill='#1b3a4b'>완전 정지</text>" +
+          "<text x='272' y='72' text-anchor='middle' font-size='12' fill='#6b7a90'>3초 멈춤</text>" +
+          "<rect x='240' y='96' width='64' height='10' rx='3' fill='#1b3a4b'/>" +
+          "<text x='272' y='124' text-anchor='middle' font-size='10.5' fill='#8aa3b0'>정지선</text>" +
+          "</svg>",
+        caption: "역삼각형 표지 — 일본 경찰 단속 1순위",
+        points: [
+          "정지선 앞에서 바퀴가 완전히 멈춘 뒤 좌우 확인하고 출발 — '슬금슬금'도 위반입니다",
+          "철길 건널목은 표지가 없어도 무조건 일시정지",
+          "주택가 좁은 교차로에 많고, 노면에 쓰인 '止まれ' 글자도 같은 효력입니다"
+        ]
+      },
+      {
+        title: "5 · 버스 전용차선 (나하 시내)",
+        figure: "<svg viewBox='0 0 320 170' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<rect x='55' y='0' width='210' height='170' fill='#eef4f8'/>" +
+          "<rect x='55' y='0' width='105' height='170' fill='#e8734a' opacity='0.10'/>" +
+          "<line x1='61' y1='0' x2='61' y2='170' stroke='#c9d8e2' stroke-width='2'/>" +
+          "<line x1='259' y1='0' x2='259' y2='170' stroke='#c9d8e2' stroke-width='2'/>" +
+          "<line x1='160' y1='4' x2='160' y2='166' stroke='#fff' stroke-width='3' stroke-dasharray='12 9'/>" +
+          "<rect x='88' y='14' width='40' height='64' rx='7' fill='#d49a3b'/>" +
+          "<rect x='94' y='22' width='28' height='10' rx='2' fill='#fff6e3'/>" +
+          "<rect x='94' y='62' width='28' height='10' rx='2' fill='#fff6e3'/>" +
+          "<text text-anchor='middle' font-size='16' font-weight='800' fill='#d4574a'>" +
+          "<tspan x='108' y='102'>バ</tspan><tspan x='108' y='120'>ス</tspan><tspan x='108' y='138'>専</tspan><tspan x='108' y='156'>用</tspan></text>" +
+          "<rect x='193' y='84' width='32' height='54' rx='9' fill='#1f92b5'/>" +
+          "<rect x='198' y='92' width='22' height='11' rx='3' fill='#d9f0f8'/>" +
+          "<polygon points='209,60 199,76 219,76' fill='#1f92b5'/>" +
+          "<text x='209' y='156' text-anchor='middle' font-size='11.5' font-weight='700' fill='#15718f'>이쪽으로</text>" +
+          "<text x='27' y='60' text-anchor='middle' font-size='11' font-weight='800' fill='#d4574a'>평일</text>" +
+          "<text x='27' y='76' text-anchor='middle' font-size='10' fill='#d4574a'>출퇴근</text>" +
+          "<text x='27' y='90' text-anchor='middle' font-size='10' fill='#d4574a'>시간만</text>" +
+          "</svg>",
+        caption: "노면의 'バス専用' 표시 — 평일 아침·저녁만 적용",
+        points: [
+          "평일 07:30~09:00(시내 유입 방향) · 17:30~19:00(유출 방향) — 토·일·공휴일은 해제",
+          "왼쪽 차선이 텅 비어 보이면 의심부터 — 노면 표시 확인하고 오른쪽 차선으로",
+          "위반 시 범칙금 약 6,000~7,000엔 · 카메라 단속분은 반납 후에도 렌터카 업체 통해 청구",
+          "⚠️ 우리 일정: 9/2(수) 08:30 나하 출발이 아침 단속 시간대와 겹칩니다 — 국도 58호 북상 시 주의"
+        ]
+      },
+      {
+        title: "6 · Y·A 넘버판 = 미군 차량",
+        figure: "<svg viewBox='0 0 320 130' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<rect x='75' y='12' width='170' height='96' rx='10' fill='#fdfdfb' stroke='#1b3a4b' stroke-width='3'/>" +
+          "<text x='160' y='48' text-anchor='middle' font-size='23' font-weight='800' fill='#1b3a4b'>沖縄 330</text>" +
+          "<text x='104' y='92' text-anchor='middle' font-size='34' font-weight='800' fill='#d4574a'>Y</text>" +
+          "<circle cx='104' cy='81' r='21' fill='none' stroke='#d4574a' stroke-width='2.5' stroke-dasharray='5 4'/>" +
+          "<text x='188' y='92' text-anchor='middle' font-size='30' font-weight='800' fill='#1b3a4b'>12-34</text>" +
+          "<text x='282' y='56' text-anchor='middle' font-size='11.5' font-weight='800' fill='#d4574a'>이 자리가</text>" +
+          "<text x='282' y='71' text-anchor='middle' font-size='11.5' font-weight='800' fill='#d4574a'>Y 또는 A</text>" +
+          "<line x1='256' y1='68' x2='128' y2='80' stroke='#d4574a' stroke-width='1.5' stroke-dasharray='4 3'/>" +
+          "</svg>",
+        caption: "번호판 히라가나 자리에 Y·A가 있으면 미군 관계 차량",
+        points: [
+          "사고가 나면 일본 경찰 + 미군 헌병대가 같이 출동 — 조율에 시간이 오래 걸려 일정이 통째로 꼬입니다",
+          "Y·A 차량과는 평소의 2배 안전거리, 무리한 추월·차선 경쟁 금지",
+          "사고 시 즉시 렌터카 업체(FlightRent-a-Car) 연락 — 긴급출동이 계약에 포함돼 있습니다"
+        ]
+      },
+      {
+        title: "7 · 코레구스 — 조미료에 술이 들어 있음",
+        figure: "<svg viewBox='0 0 320 130' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<rect x='96' y='14' width='12' height='16' fill='#8f5f3f'/>" +
+          "<path d='M92 30 h20 c8 10 10 16 10 28 v36 a8 8 0 0 1 -8 8 h-24 a8 8 0 0 1 -8 -8 v-36 c0 -12 2 -18 10 -28 z' fill='#e8734a' opacity='0.85'/>" +
+          "<rect x='88' y='56' width='28' height='28' rx='4' fill='#fff' opacity='0.92'/>" +
+          "<text x='102' y='69' text-anchor='middle' font-size='9.5' font-weight='800' fill='#8f5f3f'>泡盛</text>" +
+          "<text x='102' y='80' text-anchor='middle' font-size='8.5' fill='#8f5f3f'>20~40도</text>" +
+          "<path d='M140 66 h42' stroke='#8aa3b0' stroke-width='3' stroke-dasharray='5 4'/>" +
+          "<polygon points='196,66 184,60 184,72' fill='#8aa3b0'/>" +
+          "<path d='M206 62 a42 26 0 0 0 84 0 z' fill='#1f92b5' opacity='0.9'/>" +
+          "<ellipse cx='248' cy='62' rx='42' ry='8' fill='#f2e3c2'/>" +
+          "<text x='102' y='112' text-anchor='middle' font-size='11.5' font-weight='800' fill='#d4574a'>코레구스</text>" +
+          "<text x='248' y='112' text-anchor='middle' font-size='11.5' fill='#6b7a90'>소바에 몇 방울 = 술</text>" +
+          "</svg>",
+        caption: "오키나와 소바 테이블의 빨간 병 — 아와모리(도수 20~40도) 베이스",
+        points: [
+          "소바·찬푸루에 뿌리는 전통 조미료지만 베이스가 술입니다 — 반복 섭취 시 혈중 알코올이 올라갈 수 있음",
+          "일본 음주운전 기준은 한국과 같은 혈중 0.03% — 소량도 적발 대상",
+          "운전 예정이면 아예 쓰지 않는 게 답 — 국물에 미리 들어가는 집도 있으니 주문할 때 확인"
+        ]
+      },
+      {
+        title: "8 · 산호 노면 + 자동차도로 80km/h",
+        figure: "<svg viewBox='0 0 320 130' xmlns='http://www.w3.org/2000/svg' font-family='inherit'>" +
+          "<circle cx='96' cy='65' r='47' fill='#fff' stroke='#d4574a' stroke-width='10'/>" +
+          "<text x='96' y='80' text-anchor='middle' font-size='40' font-weight='800' fill='#1b3a4b'>80</text>" +
+          "<text x='232' y='40' text-anchor='middle' font-size='12.5' font-weight='800' fill='#1b3a4b'>오키나와 자동차도로</text>" +
+          "<text x='232' y='60' text-anchor='middle' font-size='11.5' fill='#6b7a90'>한국 고속도로는 100~110</text>" +
+          "<text x='232' y='88' text-anchor='middle' font-size='11.5' fill='#2b7fb8'>☔ 산호 노면 — 빗길 2배 조심</text>" +
+          "</svg>",
+        caption: "노면에 산호 석회암이 섞여 있어 비 오면 유독 미끄럽습니다",
+        points: [
+          "비 오면 차간거리 2배, 급가속·급제동·급핸들 금지 — 해안도로가 특히 미끄럽습니다",
+          "8월 말~9월 초는 스콜이 잦습니다 — 와이퍼·라이트는 조금 일찍",
+          "과속 카메라 벌금은 귀국 후에도 렌터카 업체를 통해 청구됩니다"
+        ]
+      },
+      {
+        title: "9 · 주유소에서",
+        points: [
+          "유종은 주유구 스티커 확인 — 보통 'レギュラー(레귤러)' = 휘발유, 빨간색 노즐",
+          "직원에게는 '레귤러, 만탄(満タン), 카-도(카드)' 세 단어면 됩니다",
+          "반납 전 가득 채우는 조건 — Day 4 14:20에 주유 일정 잡아뒀습니다"
+        ]
+      }
+    ],
+    videos: [
+      { id: "Qr3-VJQSgAA", title: "초보자를 위한 일본 오키나와 운전 가이드", by: "Jaeho Yoo" },
+      { id: "PssaNzzychI", title: "오키나와 렌트카 운전 이렇게 하면 큰일납니다", by: "삐형팸" },
+      { id: "EkfOfaXVYns", title: "일본 운전 우회전·유턴 꿀팁 — 교차로에서 신호 보는 법", by: "빌&린다 오키나와" }
+    ]
+  },
+
   /* ---------- 6. 준비물 ---------- */
   checklist: [
     {

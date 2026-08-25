@@ -73,6 +73,9 @@ const VIEWS = [
   { id: "map",    icon: "🗺️", label: "지도",    title: "동선 지도"  },
   { id: "stay",   icon: "🏨",  label: "숙박",    title: "숙소"       },
   { id: "food",   icon: "🍜",  label: "맛집",    title: "맛집"       },
+  // 운전 매뉴얼 — driveGuide 데이터가 있는 여행(오키나와)에만 탭이 생깁니다
+  ...((typeof TRIP !== "undefined" && TRIP.driveGuide)
+      ? [{ id: "drive", icon: "🚦", label: "운전", title: "운전 매뉴얼" }] : []),
   { id: "prep",   icon: "🎒",  label: "준비물",  title: "준비물"     }
 ];
 
@@ -99,6 +102,11 @@ const VIEW_META = {
     const f = TRIP.food || {};
     const n = (f.local || []).length + (f.candidates || []).length;
     return { text: n ? `${n}곳 정리됨` : "맛집 미정", done: n > 0 };
+  },
+  drive() {
+    const g = TRIP.driveGuide || {};
+    const n = (g.sections || []).length;
+    return { text: n ? `${n}개 항목 · 영상 ${(g.videos || []).length}편` : "", done: n > 0 };
   },
   prep() {
     const keys = chkKeys();
@@ -742,12 +750,61 @@ function renderChecklist() {
   });
 }
 
+/* ===================== 운전 매뉴얼 =====================
+   TRIP.driveGuide 가 있는 여행에서만 탭이 생깁니다 (VIEWS 참고).
+   sections[].figure 는 data.js 안에 든 인라인 SVG — 외부 입력이 아닙니다. */
+function renderDrive() {
+  const g = TRIP.driveGuide;
+  const box = $("#drive-guide");
+  if (!g || !box) return;
+
+  (g.sections || []).forEach((sec) => {
+    const card = el("div", "dg-sec");
+    card.appendChild(el("div", "dg-head", esc(sec.title)));
+    if (sec.figure) {
+      const fig = el("div", "dg-fig");
+      fig.innerHTML = sec.figure;
+      card.appendChild(fig);
+    }
+    if (sec.caption) card.appendChild(el("div", "dg-cap", esc(sec.caption)));
+    const pts = el("div", "dg-points");
+    (sec.points || []).forEach((p) => pts.appendChild(el("div", "dg-point", esc(p))));
+    card.appendChild(pts);
+    box.appendChild(card);
+  });
+
+  /* 영상: 썸네일만 먼저 깔고, 누르면 그 자리에서 플레이어로 바뀝니다 */
+  const vbox = $("#drive-videos");
+  (g.videos || []).forEach((v) => {
+    const w = el("div", "dg-video");
+    const th = el("button", "dg-thumb");
+    th.type = "button";
+    th.style.backgroundImage = `url('https://i.ytimg.com/vi/${v.id}/hqdefault.jpg')`;
+    th.setAttribute("aria-label", "영상 재생: " + v.title);
+    th.appendChild(el("span", "dg-play", "▶"));
+    th.addEventListener("click", () => {
+      const f = el("iframe", "dg-iframe");
+      f.src = `https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1`;
+      f.allow = "autoplay; encrypted-media; picture-in-picture";
+      f.allowFullscreen = true;
+      f.title = v.title;
+      th.replaceWith(f);
+    });
+    w.appendChild(th);
+    const meta = el("div", "dg-video-meta");
+    meta.appendChild(el("div", "dg-video-title", esc(v.title)));
+    if (v.by) meta.appendChild(el("div", "dg-video-by", esc(v.by)));
+    w.appendChild(meta);
+    vbox.appendChild(w);
+  });
+}
+
 /* ===================== 실행 ===================== */
 function render() {
   // 한 섹션이 실패해도 나머지는 그려지도록
   // 지도(renderMap)는 '지도' 탭을 처음 열 때 초기화됩니다 — showView() 참고
   [renderHero, renderOverview, renderBookings, renderDays,
-   renderStay, renderFood, renderChecklist, renderNav]
+   renderStay, renderFood, renderDrive, renderChecklist, renderNav]
     .forEach((fn) => {
       try { fn(); } catch (e) { console.error(fn.name, e); }
     });
