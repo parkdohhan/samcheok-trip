@@ -468,7 +468,7 @@ function drawMarkers() {
   // 바다를 건너는 날인지는 '그날 전체 장소' 로 판단합니다.
   // 필터로 배 핀만 꺼도 항로는 그대로이므로, 걸러진 목록으로 보면 판단이 뒤집힙니다.
   const daySea = dayMode && (TRIP.places || []).some(
-    (p) => (p.day || []).includes(mapState.day) && p.cat === "ferry");
+    (p) => (p.day || []).includes(mapState.day) && (p.cat === "ferry" || p.sea));
 
   if (dayMode && list.length > 1) drawRoute(list, seq, daySea);
   else setRouteMeta(list.length, null, null);

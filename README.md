@@ -4,8 +4,11 @@
 
 | 여행 | 주소 | 기간 |
 |---|---|---|
-| 🌺 **오키나와 3박 4일** | https://samcheok-trip-iota.vercel.app | 2026.08.31(월) ~ 09.03(목) |
+| 🐠 **세부 5박 6일** | https://samcheok-trip-iota.vercel.app | 2026.10.01(목) ~ 10.07(수) |
+| 🌺 오키나와 3박 4일 (지난 여행) | https://samcheok-trip-iota.vercel.app/okinawa/ | 2026.08.31(월) ~ 09.03(목) |
 | 🌊 삼척 1박 2일 (지난 여행) | https://samcheok-trip-iota.vercel.app/samcheok/ | 2026.08.11(화) ~ 08.12(수) |
+
+> 오키나와는 `okinawa` 브랜치에도 당시 상태 그대로 스냅샷이 있습니다.
 
 📦 **저장소** — https://github.com/parkdohhan/samcheok-trip
 
@@ -15,12 +18,12 @@
 ## 구조
 
 ```
-index.html          오키나와 화면 뼈대
-assets/data.js      ← 오키나와 여행 정보 전부 (여기만 고치면 됨)
-assets/app.js       공용 렌더링 · 탭 전환 로직 (두 여행이 같이 씀)
+index.html          세부 화면 뼈대
+assets/data.js      ← 세부 여행 정보 전부 (여기만 고치면 됨)
+assets/app.js       공용 렌더링 · 탭 전환 로직 (모든 여행이 같이 씀)
 assets/style.css    공용 디자인
-samcheok/index.html 삼척 화면 뼈대 (../assets/ 를 참조)
-samcheok/data.js    ← 삼척 여행 정보
+okinawa/            오키나와 (지난 여행 · ../assets/ 참조)
+samcheok/           삼척 (지난 여행 · ../assets/ 참조)
 serve.js            로컬 미리보기 서버
 vercel.json         배포 설정
 ```
@@ -61,7 +64,8 @@ vercel.json         배포 설정
 node serve.js
 ```
 
-- 오키나와 → http://localhost:5173
+- 세부 → http://localhost:5173
+- 오키나와 → http://localhost:5173/okinawa/
 - 삼척 → http://localhost:5173/samcheok/
 
 `index.html` 을 브라우저로 바로 열어도(`file://`) 동작합니다.
@@ -87,7 +91,7 @@ git push
 
 ## 비밀번호
 
-각 여행의 `data.js` → `meta.password` (오키나와 `0831`, 삼척 `0811`)
+각 여행의 `data.js` → `meta.password` (세부 `1001`, 오키나와 `0831`, 삼척 `0811`)
 
 > 클라이언트 사이드 잠금이라 진짜 보안은 아닙니다. 링크를 아는 사람만 막는 용도.
 > 소스를 보면 비밀번호가 그대로 보이니, 민감한 정보(카드번호·여권번호 등)는 넣지 마세요.
