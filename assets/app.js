@@ -279,7 +279,7 @@ function renderOverview() {
 /* ===================== 확정 예약 ===================== */
 const BOOK_ICON = {
   flight: "✈️", hotel: "🏨", car: "🚗", parking: "🅿️",
-  train: "🚆", bus: "🚌", ferry: "⛴️", dive: "🤿", etc: "📌"
+  train: "🚆", bus: "🚌", ferry: "⛴️", dive: "🤿", tour: "🎫", etc: "📌"
 };
 
 function renderBookings() {
