@@ -4,43 +4,47 @@
 
 | 여행 | 주소 | 기간 |
 |---|---|---|
-| ♨️ **후쿠오카·벳푸 3박 4일** (가족 27명) | 별도 Vercel 프로젝트로 배포 예정 · 로컬 `/fukuoka/` | 2026.12.03(목) ~ 12.06(일) |
-| 🐠 세부 5박 6일 (지난 여행) | https://samcheok-trip-iota.vercel.app | 2026.10.01(목) ~ 10.07(수) |
-| 🌺 오키나와 3박 4일 (지난 여행) | https://samcheok-trip-iota.vercel.app/okinawa/ | 2026.08.31(월) ~ 09.03(목) |
-| 🌊 삼척 1박 2일 (지난 여행) | https://samcheok-trip-iota.vercel.app/samcheok/ | 2026.08.11(화) ~ 08.12(수) |
+| ♨️ **후쿠오카·벳푸 3박 4일** (가족 27명) | https://tripeasys.com | 2026.12.03(목) ~ 12.06(일) |
+| 🐠 세부 5박 6일 (지난 여행) | https://tripeasys.com/cebu/ | 2026.10.01(목) ~ 10.07(수) |
+| 🌺 오키나와 3박 4일 (지난 여행) | https://tripeasys.com/okinawa/ | 2026.08.31(월) ~ 09.03(목) |
+| 🌊 삼척 1박 2일 (지난 여행) | https://tripeasys.com/samcheok/ | 2026.08.11(화) ~ 08.12(수) |
 
 > 오키나와는 `okinawa` 브랜치에도 당시 상태 그대로 스냅샷이 있습니다.
 
 📦 **저장소** — https://github.com/parkdohhan/samcheok-trip
 
-> 저장소·Vercel 프로젝트 이름은 처음 만든 삼척 여행에서 온 것이라 `samcheok-trip` 그대로입니다.
+> 저장소·Vercel 프로젝트 이름은 처음 만든 삼척 여행에서 온 것이라 `samcheok-trip` 그대로이고,
+> `samcheok-trip-iota.vercel.app` 로도 같은 사이트가 뜹니다.
 > 루트(`/`)가 현재 진행 중인 여행, 지난 여행은 하위 폴더로 내려갑니다.
 
 ## 구조
 
 ```
-index.html          세부 화면 뼈대
-assets/data.js      ← 세부 여행 정보 전부 (여기만 고치면 됨)
-assets/app.js       공용 렌더링 · 탭 전환 로직 (모든 여행이 같이 씀)
-assets/style.css    공용 디자인
+index.html          ← 현재 여행(후쿠오카) 화면 뼈대
+data.js             ← 후쿠오카 여행 정보 전부 (여기만 고치면 됨)
+app/app.js          후쿠오카 전용 로직 — 이름 로그인 · Supabase 개인 준비물/메모
+app/style.css       후쿠오카 전용 디자인 (공용 + 추가분)
+reference/          더데이투어 견적서 · 참석자 명단 원본 이미지
+
+assets/app.js       지난 여행 3개가 함께 쓰는 공용 로직
+assets/style.css    지난 여행 공용 디자인
+cebu/               세부 (지난 여행 · ../assets/ 참조)
 okinawa/            오키나와 (지난 여행 · ../assets/ 참조)
 samcheok/           삼척 (지난 여행 · ../assets/ 참조)
-fukuoka/            후쿠오카 가족여행 — 독립 폴더 (자체 assets/ · Supabase 연동)
-  assets/app.js     공용 app.js 에서 갈라져 나온 사본 (이름 로그인 · 개인 준비물)
-  reference/        더데이투어 견적서 · 참석자 명단 원본 이미지
 serve.js            로컬 미리보기 서버
 vercel.json         배포 설정
 ```
 
-`assets/app.js` 와 `assets/style.css` 는 여행에 종속되지 않습니다.
-여행마다 다른 건 `data.js` 의 `TRIP` / `CATEGORIES` 뿐입니다.
+`assets/` 는 끝난 여행 3개가 같이 쓰는 공용 파일이라 건드릴 일이 거의 없습니다.
+현재 여행은 `app/` 에 자기 로직을 따로 들고 있습니다 — 이름 로그인과 Supabase 때문입니다.
 
 ### 새 여행 추가하기
 
 1. 지금 루트에 있는 여행을 `이전여행이름/` 폴더로 옮기고, 그 `index.html` 의 경로를
    `../assets/style.css` · `./data.js` · `../assets/app.js` 로 바꿉니다
-2. 새 여행의 `index.html` 을 루트에, `data.js` 를 `assets/` 에 둡니다
-3. `vercel.json` 에 새 하위 폴더의 캐시 헤더 규칙을 추가합니다
+   (현재 여행이 `app/` 을 쓰고 있었다면 공용 `assets/` 를 가리키게 바꿔주면 됩니다)
+2. 새 여행의 `index.html` 과 `data.js` 를 루트에 둡니다
+3. `vercel.json` 에 새 하위 폴더의 캐시 헤더·리다이렉트 규칙을 추가합니다
 4. `data.js` 의 `meta.storeKey` 를 **여행마다 다르게** 지정합니다
    (안 그러면 체크리스트 체크 상태가 다른 여행과 섞입니다)
 
@@ -64,8 +68,8 @@ fukuoka_memo        사람별 메모 (입력 멈추면 자동 저장)
 > 그 사람 준비물과 메모를 보고 고칠 수 있습니다. 가족끼리 쓰는 용도라 이렇게 뒀습니다 —
 > 민감한 내용은 적지 마세요. 브라우저에 들어가는 키도 공개(publishable)용 키입니다.
 
-별도 Vercel 프로젝트로 배포할 때는 **Root Directory 를 `fukuoka` 로** 잡으면 됩니다.
-`fukuoka/` 안에서 경로가 전부 `./` 로 닫혀 있어 그대로 동작합니다.
+도메인 `tripeasys.com` 이 이 프로젝트에 연결돼 있고, 루트가 곧 후쿠오카 화면입니다.
+예전에 공유한 `/fukuoka/` 링크는 `vercel.json` 리다이렉트로 루트로 넘어갑니다.
 
 ## 화면 구성
 
@@ -91,8 +95,8 @@ fukuoka_memo        사람별 메모 (입력 멈추면 자동 저장)
 node serve.js
 ```
 
-- 후쿠오카 → http://localhost:5173/fukuoka/
-- 세부 → http://localhost:5173
+- 후쿠오카 → http://localhost:5173
+- 세부 → http://localhost:5173/cebu/
 - 오키나와 → http://localhost:5173/okinawa/
 - 삼척 → http://localhost:5173/samcheok/
 

@@ -779,12 +779,46 @@ function drawPrep() {
   paintPrep();
 }
 
+/* 버튼 연결을 네트워크보다 먼저 합니다 —
+   목록 불러오기가 실패해도 '추가' 가 먹통이 되지 않게. */
+function prepSay(msg, bad) {
+  const n = $("#prep-status"); if (!n) return;
+  n.textContent = msg || "";
+  n.classList.toggle("bad", !!bad);
+  if (msg && !bad) setTimeout(() => { if (n.textContent === msg) n.textContent = ""; }, 2000);
+}
+
 async function renderChecklist() {
   const who = $("#prep-who");
   if (who) who.textContent = ME ? `${ME} 님의 목록 — 추가·삭제한 건 나한테만 보입니다` : "";
+
   $("#prep-switch")?.addEventListener("click", () => {
     store.del(STORE_KEY + ":me"); location.reload();
   });
+
+  $("#prep-form")?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const input = $("#prep-input");
+    const label = input.value.trim();
+    if (!label) { prepSay("추가할 준비물을 적어주세요", true); input.focus(); return; }
+    if (!SUPA || !ME) { prepSay("이름을 다시 입력해 주세요", true); return; }
+    prepSay("추가하는 중…");
+    try {
+      const rows = await supa(T.checklist, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ person: ME, label })
+      });
+      if (rows && rows[0]) MYLIST.push(rows[0]);
+      input.value = "";
+      drawPrep();
+      prepSay("추가됨 ✓");
+    } catch (e) {
+      console.error(e);
+      prepSay("추가하지 못했어요 — 인터넷 확인 후 다시 눌러주세요", true);  // 적은 글자는 남겨둡니다
+    }
+  });
+
   if (!SUPA || !ME) return;
 
   const listUrl = `${T.checklist}?select=id,label,checked&person=eq.${enc(ME)}&order=id`;
@@ -800,26 +834,10 @@ async function renderChecklist() {
   } catch (e) {
     console.error(e);
     $("#checklist").appendChild(emptyBox("준비물을 불러오지 못했어요.\n인터넷 연결을 확인해 주세요."));
+    prepSay("목록을 못 불러왔지만 추가는 됩니다", true);
     return;
   }
   drawPrep();
-
-  $("#prep-form")?.addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const input = $("#prep-input");
-    const label = input.value.trim();
-    if (!label) return;
-    input.value = "";
-    try {
-      const rows = await supa(T.checklist, {
-        method: "POST",
-        headers: { Prefer: "return=representation" },
-        body: JSON.stringify({ person: ME, label })
-      });
-      if (rows && rows[0]) MYLIST.push(rows[0]);
-      drawPrep();
-    } catch (e) { console.error(e); }
-  });
 }
 
 /* ===================== 내 메모 (Supabase · 사람별) =====================
@@ -911,23 +929,17 @@ function noteCard(n) {
 async function renderMemo() {
   const who = $("#memo-who");
   if (who) who.textContent = ME ? `${ME} 님의 메모 — 나만 보입니다` : "";
-  const form = $("#memo-form"); if (!form || !SUPA || !ME) return;
+  const form = $("#memo-form"); if (!form) return;
 
-  try {
-    NOTES = (await supa(`${T.notes}?select=id,body,created_at,updated_at&person=eq.${enc(ME)}&order=id.desc`)) || [];
-  } catch (e) {
-    console.error(e);
-    $("#memo-list").appendChild(emptyBox("메모를 불러오지 못했어요.\n인터넷 연결을 확인해 주세요."));
-    return;
-  }
-  drawNotes();
+  const say = (m) => { const n = $("#memo-status"); if (n) n.textContent = m; };
 
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const box = $("#memo-box");
     const v = box.value.trim();
-    if (!v) return;
-    $("#memo-status").textContent = "저장 중…";
+    if (!v) { say("메모를 적어주세요"); box.focus(); return; }
+    if (!SUPA || !ME) { say("이름을 다시 입력해 주세요"); return; }
+    say("저장 중…");
     try {
       const rows = await supa(T.notes, {
         method: "POST",
@@ -937,13 +949,23 @@ async function renderMemo() {
       if (rows && rows[0]) NOTES.unshift(rows[0]);
       box.value = "";                       // 입력칸은 비우고 아래에 쌓습니다
       drawNotes();
-      $("#memo-status").textContent = "저장됨 ✓";
-      setTimeout(() => { $("#memo-status").textContent = ""; }, 2000);
+      say("저장됨 ✓");
+      setTimeout(() => { if ($("#memo-status").textContent === "저장됨 ✓") say(""); }, 2000);
     } catch (e) {
       console.error(e);
-      $("#memo-status").textContent = "저장 실패 — 다시 눌러주세요";
+      say("저장 실패 — 다시 눌러주세요");
     }
   });
+
+  if (!SUPA || !ME) return;
+  try {
+    NOTES = (await supa(`${T.notes}?select=id,body,created_at,updated_at&person=eq.${enc(ME)}&order=id.desc`)) || [];
+  } catch (e) {
+    console.error(e);
+    $("#memo-list").appendChild(emptyBox("메모를 불러오지 못했어요.\n인터넷 연결을 확인해 주세요."));
+    return;
+  }
+  drawNotes();
 }
 
 /* ===================== 실행 ===================== */

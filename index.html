@@ -3,23 +3,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f92b5">
-<title>세부 여행 대시보드</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐠</text></svg>">
+<title>후쿠오카 가족여행 대시보드</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♨️</text></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="./assets/style.css">
+<link rel="stylesheet" href="./app/style.css">
 
-<!-- ===================== 잠금 화면 ===================== -->
+<!-- ===================== 이름 입장 화면 ===================== -->
 <div id="gate" class="gate">
   <div class="gate-card">
-    <div class="gate-emoji">🐠</div>
-    <h1 class="gate-title">세부 여행 대시보드</h1>
-    <p class="gate-sub">접근 비밀번호를 입력해주세요</p>
+    <div class="gate-emoji">♨️</div>
+    <h1 class="gate-title">후쿠오카 가족여행</h1>
+    <p class="gate-sub">본인 이름을 입력해주세요</p>
     <form id="gate-form" autocomplete="off">
-      <input id="gate-input" class="gate-input" type="password" inputmode="numeric"
-             maxlength="8" placeholder="••••" aria-label="비밀번호">
+      <input id="gate-input" class="gate-input gate-input-name" type="text"
+             maxlength="12" placeholder="이름" aria-label="이름">
       <button class="gate-btn" type="submit">입장</button>
     </form>
-    <p id="gate-err" class="gate-err" hidden>비밀번호가 맞지 않아요 🥲</p>
+    <p id="gate-err" class="gate-err" hidden></p>
+    <p class="gate-note">이름으로 들어가면 준비물과 메모가 나한테만 저장됩니다</p>
   </div>
 </div>
 
@@ -30,9 +31,9 @@
   <header class="topbar">
     <div class="topbar-left">
       <button id="topbar-back" class="topbar-back" type="button" aria-label="뒤로 가기" hidden>‹</button>
-      <span class="topbar-emoji">🐠</span>
+      <span class="topbar-emoji">♨️</span>
       <div class="topbar-txt">
-        <div class="topbar-title" id="topbar-title">세부 5박 6일</div>
+        <div class="topbar-title" id="topbar-title">후쿠오카·벳푸</div>
         <div class="topbar-sub" id="topbar-sub">한눈에 보기</div>
       </div>
     </div>
@@ -49,7 +50,6 @@
        ======================================================== -->
   <section class="view" data-view="home">
 
-    <!-- 히어로 -->
     <div class="card hero">
       <span class="badge" id="hero-badge"></span>
       <h1 class="hero-title" id="hero-title"></h1>
@@ -59,7 +59,7 @@
         <div class="dday">
           <div class="dday-label">D-DAY</div>
           <div class="dday-num" id="dday-num">–</div>
-          <div class="dday-emoji">🐠</div>
+          <div class="dday-emoji">♨️</div>
         </div>
         <p class="hero-depart" id="hero-depart"></p>
       </div>
@@ -67,7 +67,6 @@
       <div class="chips chips-file" id="hero-files"></div>
     </div>
 
-    <!-- 한눈에 보기 -->
     <div class="card">
       <h2 class="sec-title">한눈에 보기</h2>
       <p class="sec-sub" id="ov-sub"></p>
@@ -78,27 +77,25 @@
           <div id="bookings" class="booking-list"></div>
         </div>
         <div class="ov-col">
-          <h3 class="ov-h" id="ov-day-h">🗓️ 마지막 날</h3>
+          <h3 class="ov-h" id="ov-day-h">🗓️ 첫날</h3>
           <p class="ov-day-sub" id="ov-day-sub"></p>
           <div id="ov-lastday"></div>
         </div>
       </div>
     </div>
 
-    <!-- 준비물 (홈 피드) -->
+    <!-- 내 준비물 요약 -->
     <div class="card">
-      <h2 class="sec-title">🎒 준비물</h2>
-      <p class="sec-sub">여기서 바로 체크할 수 있어요 · 준비물 탭과 같이 저장됩니다</p>
+      <h2 class="sec-title">🎒 내 준비물</h2>
+      <p class="sec-sub">나만 보이는 목록이에요 · 추가·삭제도 내 것만 바뀝니다</p>
       <div class="qnav-head">
         <span class="qnav-head-label">체크 현황</span>
         <span class="qnav-head-num" id="prep-count">–</span>
       </div>
       <div class="prog"><div class="prog-bar" id="prep-prog"></div></div>
-      <div id="checklist-home"></div>
-      <button id="prep-more" class="reset-btn" type="button">준비물 탭에서 보기 ›</button>
+      <button id="prep-more" class="reset-btn" type="button">준비물 탭에서 고치기 ›</button>
     </div>
 
-    <!-- 카테고리 바로가기 -->
     <div class="card">
       <h2 class="sec-title">📂 카테고리</h2>
       <div class="qnav-head">
@@ -156,46 +153,76 @@
   </section>
 
   <!-- ========================================================
-       ⑤ 맛집
+       ⑤ 견적
        ======================================================== -->
-  <section class="view" data-view="food">
+  <section class="view" data-view="cost">
     <div class="card">
-      <h2 class="sec-title">🍜 맛집</h2>
-      <p class="sec-sub">대표 음식 + 후보 정리</p>
-      <h3 class="sub-title" id="food-local-title"></h3>
-      <div class="table-wrap">
-        <table class="tbl" id="food-local"></table>
-      </div>
-      <div id="food-cand" class="place-list"></div>
-      <p class="note" id="food-note"></p>
+      <h2 class="sec-title">💰 견적</h2>
+      <p class="sec-sub" id="cost-basis"></p>
+      <div class="budget-total"><span>1인당</span><span id="cost-per">–</span></div>
+      <div class="cost-grand"><span>총액</span><span id="cost-total">–</span></div>
+      <div id="cost-groups"></div>
+      <p class="note" id="cost-notes"></p>
     </div>
   </section>
 
   <!-- ========================================================
-       ⑤-1 운전 매뉴얼
+       ⑥ 참석자
        ======================================================== -->
-  <section class="view" data-view="drive">
+  <section class="view" data-view="people">
     <div class="card">
-      <h2 class="sec-title">🚦 일본 운전 매뉴얼</h2>
-      <p class="sec-sub">좌측통행 + 오키나와에서만 겪는 것들 — 출발 전 한 번 정독</p>
-      <div id="drive-guide"></div>
-    </div>
-    <div class="card">
-      <h2 class="sec-title">🎬 도움되는 영상</h2>
-      <p class="sec-sub">썸네일을 누르면 여기서 바로 재생됩니다</p>
-      <div id="drive-videos"></div>
+      <h2 class="sec-title">👨‍👩‍👧‍👦 참석자</h2>
+      <p class="sec-sub" id="people-sub"></p>
+      <p class="note" id="people-note"></p>
+      <div id="people-list"></div>
     </div>
   </section>
 
   <!-- ========================================================
-       ⑥ 준비물
+       ⑦ 내 준비물
        ======================================================== -->
   <section class="view" data-view="prep">
     <div class="card">
-      <h2 class="sec-title">🎒 준비물</h2>
-      <p class="sec-sub">체크 상태는 브라우저에 저장됩니다 (localStorage)</p>
+      <h2 class="sec-title">🎒 내 준비물</h2>
+      <p class="sec-sub" id="prep-who">—</p>
+      <div class="qnav-head">
+        <span class="qnav-head-label">체크 현황</span>
+        <span class="qnav-head-num" id="prep-count2">–</span>
+      </div>
+      <div class="prog"><div class="prog-bar" id="prep-prog2"></div></div>
+
+      <form id="prep-form" class="prep-add" autocomplete="off">
+        <input id="prep-input" class="prep-input" type="text" maxlength="60"
+               placeholder="준비물 추가 (예: 수면안대)" aria-label="준비물 추가">
+        <button class="prep-add-btn" type="submit">추가</button>
+      </form>
+
+      <p class="prep-status" id="prep-status"></p>
+
       <div id="checklist"></div>
-      <button id="checklist-reset" class="reset-btn" type="button">체크 초기화</button>
+      <p class="note" id="prep-hint">내가 추가하거나 지운 항목은 나한테만 보입니다. 다른 사람 목록은 그대로예요.</p>
+      <button id="prep-switch" class="reset-btn" type="button">다른 이름으로 들어가기</button>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⑧ 내 메모
+       ======================================================== -->
+  <section class="view" data-view="memo">
+    <div class="card">
+      <h2 class="sec-title">📝 내 메모</h2>
+      <p class="sec-sub" id="memo-who">—</p>
+
+      <form id="memo-form" class="memo-form" autocomplete="off">
+        <textarea id="memo-box" class="memo-box" maxlength="4000"
+                  placeholder="메모를 적고 저장을 누르면 아래에 쌓입니다"></textarea>
+        <div class="memo-actions">
+          <span class="memo-status" id="memo-status"></span>
+          <button class="prep-add-btn" type="submit">저장</button>
+        </div>
+      </form>
+
+      <div id="memo-list"></div>
     </div>
   </section>
 
@@ -206,6 +233,6 @@
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="./assets/data.js"></script>
-<script src="./assets/app.js"></script>
+<script src="./data.js"></script>
+<script src="./app/app.js"></script>
 </html>

@@ -3,41 +3,61 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "tripeasys.com"
-        }
-      ],
-      "destination": "/fukuoka/",
+      "source": "/fukuoka",
+      "destination": "/",
       "permanent": false
     },
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.tripeasys.com"
-        }
-      ],
-      "destination": "/fukuoka/",
+      "source": "/fukuoka/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/cebu",
+      "destination": "/cebu/",
+      "permanent": false
+    },
+    {
+      "source": "/okinawa",
+      "destination": "/okinawa/",
       "permanent": false
     },
     {
       "source": "/samcheok",
       "destination": "/samcheok/",
       "permanent": false
-    },
-    {
-      "source": "/fukuoka",
-      "destination": "/fukuoka/",
-      "permanent": false
     }
   ],
   "headers": [
     {
+      "source": "/data.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/app/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/cebu/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -56,15 +76,6 @@
     },
     {
       "source": "/samcheok/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/fukuoka/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
