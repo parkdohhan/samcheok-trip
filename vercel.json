@@ -3,6 +3,28 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "tripeasys.com"
+        }
+      ],
+      "destination": "/fukuoka/",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.tripeasys.com"
+        }
+      ],
+      "destination": "/fukuoka/",
+      "permanent": false
+    },
+    {
       "source": "/samcheok",
       "destination": "/samcheok/",
       "permanent": false
