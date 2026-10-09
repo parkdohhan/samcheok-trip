@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f92b5">
+<title>후쿠오카 가족여행 대시보드</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♨️</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="./assets/style.css">
+
+<!-- ===================== 이름 입장 화면 ===================== -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-emoji">♨️</div>
+    <h1 class="gate-title">후쿠오카 가족여행</h1>
+    <p class="gate-sub">본인 이름을 입력해주세요</p>
+    <form id="gate-form" autocomplete="off">
+      <input id="gate-input" class="gate-input gate-input-name" type="text"
+             maxlength="12" placeholder="이름" aria-label="이름">
+      <button class="gate-btn" type="submit">입장</button>
+    </form>
+    <p id="gate-err" class="gate-err" hidden></p>
+    <p class="gate-note">이름으로 들어가면 준비물과 메모가 나한테만 저장됩니다</p>
+  </div>
+</div>
+
+<!-- ===================== 본문 ===================== -->
+<main id="app" class="app" hidden>
+
+  <!-- 상단 고정 바 -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="topbar-back" class="topbar-back" type="button" aria-label="뒤로 가기" hidden>‹</button>
+      <span class="topbar-emoji">♨️</span>
+      <div class="topbar-txt">
+        <div class="topbar-title" id="topbar-title">후쿠오카·벳푸</div>
+        <div class="topbar-sub" id="topbar-sub">한눈에 보기</div>
+      </div>
+    </div>
+    <span class="topbar-dday" id="topbar-dday">–</span>
+  </header>
+
+  <!-- 카테고리 내비 -->
+  <nav class="topnav" aria-label="카테고리">
+    <div class="topnav-inner" id="tabbar"></div>
+  </nav>
+
+  <!-- ========================================================
+       ① 한눈에 보기
+       ======================================================== -->
+  <section class="view" data-view="home">
+
+    <div class="card hero">
+      <span class="badge" id="hero-badge"></span>
+      <h1 class="hero-title" id="hero-title"></h1>
+      <p class="hero-desc" id="hero-desc"></p>
+
+      <div class="hero-row">
+        <div class="dday">
+          <div class="dday-label">D-DAY</div>
+          <div class="dday-num" id="dday-num">–</div>
+          <div class="dday-emoji">♨️</div>
+        </div>
+        <p class="hero-depart" id="hero-depart"></p>
+      </div>
+      <div class="chips" id="hero-chips"></div>
+      <div class="chips chips-file" id="hero-files"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="sec-title">한눈에 보기</h2>
+      <p class="sec-sub" id="ov-sub"></p>
+      <div class="ov-banner" id="ov-banner"></div>
+      <div class="ov-grid">
+        <div class="ov-col">
+          <h3 class="ov-h">✅ 확정 예약</h3>
+          <div id="bookings" class="booking-list"></div>
+        </div>
+        <div class="ov-col">
+          <h3 class="ov-h" id="ov-day-h">🗓️ 첫날</h3>
+          <p class="ov-day-sub" id="ov-day-sub"></p>
+          <div id="ov-lastday"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 내 준비물 요약 -->
+    <div class="card">
+      <h2 class="sec-title">🎒 내 준비물</h2>
+      <p class="sec-sub">나만 보이는 목록이에요 · 추가·삭제도 내 것만 바뀝니다</p>
+      <div class="qnav-head">
+        <span class="qnav-head-label">체크 현황</span>
+        <span class="qnav-head-num" id="prep-count">–</span>
+      </div>
+      <div class="prog"><div class="prog-bar" id="prep-prog"></div></div>
+      <button id="prep-more" class="reset-btn" type="button">준비물 탭에서 고치기 ›</button>
+    </div>
+
+    <div class="card">
+      <h2 class="sec-title">📂 카테고리</h2>
+      <div class="qnav-head">
+        <span class="qnav-head-label">여행 준비 현황</span>
+        <span class="qnav-head-num" id="qnav-count">–</span>
+      </div>
+      <div class="prog"><div class="prog-bar" id="qnav-prog"></div></div>
+      <div class="qnav" id="qnav"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ② 일정
+       ======================================================== -->
+  <section class="view" data-view="plan">
+    <div class="card">
+      <h2 class="sec-title">🗓️ 일정표</h2>
+      <p class="sec-sub">날짜를 눌러 하루씩 확인하세요</p>
+      <div id="day-tabs" class="tabs"></div>
+      <div id="day-panels"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ③ 지도
+       ======================================================== -->
+  <section class="view" data-view="map">
+    <div class="card">
+      <h2 class="sec-title">🗺️ 동선 지도</h2>
+      <div id="map-day-tabs" class="tabs"></div>
+      <div class="filter-box">
+        <div class="filter-row">
+          <span class="filter-label">📍 필터:</span>
+          <div id="map-cat-filters" class="chips chips-filter"></div>
+        </div>
+      </div>
+      <div class="map-meta">
+        <div class="map-meta-title" id="map-meta-title"></div>
+        <div class="map-meta-sub" id="map-meta-sub"></div>
+        <div class="map-route" id="map-route"></div>
+      </div>
+      <div id="map"></div>
+      <div id="map-list" class="place-list"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ④ 숙박
+       ======================================================== -->
+  <section class="view" data-view="stay">
+    <div class="card">
+      <h2 class="sec-title">🏨 숙소</h2>
+      <div id="stay"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⑤ 견적
+       ======================================================== -->
+  <section class="view" data-view="cost">
+    <div class="card">
+      <h2 class="sec-title">💰 견적</h2>
+      <p class="sec-sub" id="cost-basis"></p>
+      <div class="budget-total"><span>1인당</span><span id="cost-per">–</span></div>
+      <div class="cost-grand"><span>총액</span><span id="cost-total">–</span></div>
+      <div id="cost-groups"></div>
+      <p class="note" id="cost-notes"></p>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⑥ 참석자
+       ======================================================== -->
+  <section class="view" data-view="people">
+    <div class="card">
+      <h2 class="sec-title">👨‍👩‍👧‍👦 참석자</h2>
+      <p class="sec-sub" id="people-sub"></p>
+      <p class="note" id="people-note"></p>
+      <div id="people-list"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⑦ 내 준비물
+       ======================================================== -->
+  <section class="view" data-view="prep">
+    <div class="card">
+      <h2 class="sec-title">🎒 내 준비물</h2>
+      <p class="sec-sub" id="prep-who">—</p>
+      <div class="qnav-head">
+        <span class="qnav-head-label">체크 현황</span>
+        <span class="qnav-head-num" id="prep-count2">–</span>
+      </div>
+      <div class="prog"><div class="prog-bar" id="prep-prog2"></div></div>
+
+      <form id="prep-form" class="prep-add" autocomplete="off">
+        <input id="prep-input" class="prep-input" type="text" maxlength="60"
+               placeholder="준비물 추가 (예: 수면안대)" aria-label="준비물 추가">
+        <button class="prep-add-btn" type="submit">추가</button>
+      </form>
+
+      <div id="checklist"></div>
+      <p class="note" id="prep-hint">내가 추가하거나 지운 항목은 나한테만 보입니다. 다른 사람 목록은 그대로예요.</p>
+      <button id="prep-switch" class="reset-btn" type="button">다른 이름으로 들어가기</button>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⑧ 내 메모
+       ======================================================== -->
+  <section class="view" data-view="memo">
+    <div class="card">
+      <h2 class="sec-title">📝 내 메모</h2>
+      <p class="sec-sub" id="memo-who">—</p>
+      <textarea id="memo-box" class="memo-box" placeholder="자유롭게 적어두세요 — 입력을 멈추면 자동 저장됩니다"></textarea>
+      <div class="memo-status" id="memo-status"></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div id="foot-text"></div>
+  </footer>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./data.js"></script>
+<script src="./assets/app.js"></script>
+</html>

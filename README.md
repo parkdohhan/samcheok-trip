@@ -1,10 +1,11 @@
 # 여행 대시보드
 
-여행별 모바일 웹앱. 현재 두 개가 올라가 있습니다.
+여행별 모바일 웹앱.
 
 | 여행 | 주소 | 기간 |
 |---|---|---|
-| 🐠 **세부 5박 6일** | https://samcheok-trip-iota.vercel.app | 2026.10.01(목) ~ 10.07(수) |
+| ♨️ **후쿠오카·벳푸 3박 4일** (가족 27명) | 별도 Vercel 프로젝트로 배포 예정 · 로컬 `/fukuoka/` | 2026.12.03(목) ~ 12.06(일) |
+| 🐠 세부 5박 6일 (지난 여행) | https://samcheok-trip-iota.vercel.app | 2026.10.01(목) ~ 10.07(수) |
 | 🌺 오키나와 3박 4일 (지난 여행) | https://samcheok-trip-iota.vercel.app/okinawa/ | 2026.08.31(월) ~ 09.03(목) |
 | 🌊 삼척 1박 2일 (지난 여행) | https://samcheok-trip-iota.vercel.app/samcheok/ | 2026.08.11(화) ~ 08.12(수) |
 
@@ -24,6 +25,9 @@ assets/app.js       공용 렌더링 · 탭 전환 로직 (모든 여행이 같�
 assets/style.css    공용 디자인
 okinawa/            오키나와 (지난 여행 · ../assets/ 참조)
 samcheok/           삼척 (지난 여행 · ../assets/ 참조)
+fukuoka/            후쿠오카 가족여행 — 독립 폴더 (자체 assets/ · Supabase 연동)
+  assets/app.js     공용 app.js 에서 갈라져 나온 사본 (이름 로그인 · 개인 준비물)
+  reference/        더데이투어 견적서 · 참석자 명단 원본 이미지
 serve.js            로컬 미리보기 서버
 vercel.json         배포 설정
 ```
@@ -39,6 +43,29 @@ vercel.json         배포 설정
 3. `vercel.json` 에 새 하위 폴더의 캐시 헤더 규칙을 추가합니다
 4. `data.js` 의 `meta.storeKey` 를 **여행마다 다르게** 지정합니다
    (안 그러면 체크리스트 체크 상태가 다른 여행과 섞입니다)
+
+## 후쿠오카만 다른 점 — 이름 로그인 + Supabase
+
+다른 여행은 비밀번호 하나를 같이 쓰지만, 후쿠오카는 **본인 이름으로 들어갑니다.**
+준비물과 메모가 사람마다 따로 저장돼야 해서입니다.
+
+```
+fukuoka_people      참석자 명단 27명 (이름 · 가족번호 · 별칭)
+fukuoka_checklist   사람별 준비물 (추가 · 삭제 · 체크)
+fukuoka_memo        사람별 메모 (입력 멈추면 자동 저장)
+```
+
+- Supabase 프로젝트 `Dohhani_Thinker` (서울 리전) 안에 `fukuoka_` 접두사로 들어 있습니다
+- 처음 들어온 사람에게는 `data.js` 의 `prepDefaults` 가 한 번만 복사됩니다
+- 그 뒤 추가·삭제·체크는 **그 사람 행에만** 반영됩니다
+- `data.js` 의 `meta.authMode: "name"` 이 이름 로그인 스위치입니다
+
+> ⚠️ 이름 입력은 **인증이 아니라 선택**입니다. 링크를 아는 사람은 누구 이름으로든 들어가
+> 그 사람 준비물과 메모를 보고 고칠 수 있습니다. 가족끼리 쓰는 용도라 이렇게 뒀습니다 —
+> 민감한 내용은 적지 마세요. 브라우저에 들어가는 키도 공개(publishable)용 키입니다.
+
+별도 Vercel 프로젝트로 배포할 때는 **Root Directory 를 `fukuoka` 로** 잡으면 됩니다.
+`fukuoka/` 안에서 경로가 전부 `./` 로 닫혀 있어 그대로 동작합니다.
 
 ## 화면 구성
 
@@ -64,6 +91,7 @@ vercel.json         배포 설정
 node serve.js
 ```
 
+- 후쿠오카 → http://localhost:5173/fukuoka/
 - 세부 → http://localhost:5173
 - 오키나와 → http://localhost:5173/okinawa/
 - 삼척 → http://localhost:5173/samcheok/
@@ -92,6 +120,8 @@ git push
 ## 비밀번호
 
 각 여행의 `data.js` → `meta.password` (세부 `1001`, 오키나와 `0831`, 삼척 `0811`)
+
+후쿠오카는 비밀번호가 없습니다 — 명단에 있는 **본인 이름**을 입력합니다.
 
 > 클라이언트 사이드 잠금이라 진짜 보안은 아닙니다. 링크를 아는 사람만 막는 용도.
 > 소스를 보면 비밀번호가 그대로 보이니, 민감한 정보(카드번호·여권번호 등)는 넣지 마세요.
