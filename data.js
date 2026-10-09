@@ -14,7 +14,7 @@ const TRIP = {
     emoji: "♨️",
     badge: "2026 WINTER",
     title: "후쿠오카·벳푸 3박 4일",
-    subtitle: "박용호 원장님 가족여행",
+    subtitle: "온천 & 가족여행",
     desc: "벳푸 온천 2박 + 후쿠오카 1박 · 전용 차량과 한국인 가이드가 전 일정 동행하는 27명 가족여행",
     startDate: "2026-12-03",
     endDate:   "2026-12-06",
