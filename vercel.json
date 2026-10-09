@@ -8,6 +8,11 @@
       "permanent": false
     },
     {
+      "source": "/fukuoka/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
       "source": "/fukuoka/:path*",
       "destination": "/",
       "permanent": false
