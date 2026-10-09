@@ -511,3 +511,7 @@ a{color:var(--brand-dark)}
 }
 .memo-box:focus{border-color:var(--brand);background:#fff}
 .memo-status{margin-top:9px;text-align:right;font-size:11.5px;color:var(--muted);min-height:16px}
+
+/* 그리드 칸은 기본값이 min-width:auto 라 긴 메타 문구(예: "1인 ₩2,169,000")에
+   밀려 가로로 넘칩니다. 0 으로 풀어줘야 말줄임이 걸립니다. */
+.qnav-item{min-width:0}
