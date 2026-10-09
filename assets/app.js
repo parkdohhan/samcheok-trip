@@ -414,8 +414,10 @@ function renderMap() {
 
   MAP = L.map("map", { scrollWheelZoom: false })
         .setView([37.3186, 129.2648], 11);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  // CARTO 베이스맵이 API 키를 요구하게 바뀌어(타일 대신 워터마크가 옴)
+  // 키 없이 쓸 수 있는 OSM 기본 타일로 교체했습니다.
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
   }).addTo(MAP);
   LAYER = L.layerGroup().addTo(MAP);
 

@@ -515,3 +515,28 @@ a{color:var(--brand-dark)}
 /* 그리드 칸은 기본값이 min-width:auto 라 긴 메타 문구(예: "1인 ₩2,169,000")에
    밀려 가로로 넘칩니다. 0 으로 풀어줘야 말줄임이 걸립니다. */
 .qnav-item{min-width:0}
+
+/* ===================== 메모 — 쌓이는 목록 ===================== */
+.memo-form{margin-top:14px}
+.memo-box{min-height:120px}
+.memo-box-edit{min-height:100px;margin:0}
+.memo-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:9px}
+.memo-actions .memo-status{flex:1;text-align:left;margin:0}
+.memo-item{
+  margin-top:12px;padding:13px 15px;border-radius:14px;
+  background:#f8fbfd;border:1px solid var(--line);
+}
+.memo-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.memo-time{font-size:11.5px;font-weight:700;color:var(--muted)}
+.memo-acts{display:flex;gap:6px}
+.memo-btn{
+  padding:5px 10px;border:1px solid var(--line);border-radius:9px;
+  background:#fff;color:var(--ink-2);font-size:11.5px;font-weight:700;
+}
+.memo-btn:active{background:#eaf6fa}
+.memo-btn-del{color:#d4574a}
+.memo-btn-del:active{background:#ffecec;border-color:#f3c9c9}
+.memo-body{
+  margin-top:9px;font-size:13.5px;line-height:1.7;color:var(--ink);
+  white-space:pre-wrap;word-break:break-word;
+}

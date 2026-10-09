@@ -450,8 +450,10 @@ function renderMap() {
 
   MAP = L.map("map", { scrollWheelZoom: false })
         .setView([37.3186, 129.2648], 11);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  // CARTO 베이스맵이 API 키를 요구하게 바뀌어(타일 대신 워터마크가 옴)
+  // 키 없이 쓸 수 있는 OSM 기본 타일로 교체했습니다.
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
   }).addTo(MAP);
   LAYER = L.layerGroup().addTo(MAP);
 
@@ -820,35 +822,127 @@ async function renderChecklist() {
   });
 }
 
-/* ===================== 내 메모 (Supabase · 사람별) ===================== */
+/* ===================== 내 메모 (Supabase · 사람별) =====================
+   한 칸에 계속 덮어쓰지 않고, 저장할 때마다 한 건씩 쌓입니다.
+   각 메모는 따로 수정·삭제할 수 있습니다. */
+let NOTES = [];
+
+const memoTime = (iso) => {
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
+function drawNotes() {
+  const box = $("#memo-list"); if (!box) return;
+  box.innerHTML = "";
+  if (!NOTES.length) {
+    box.appendChild(emptyBox("아직 메모가 없어요.\n위에 적고 저장을 눌러보세요."));
+    return;
+  }
+  NOTES.forEach((n) => box.appendChild(noteCard(n)));
+}
+
+function noteCard(n) {
+  const card = el("div", "memo-item");
+  const head = el("div", "memo-item-head");
+  const when = n.updated_at && n.updated_at !== n.created_at
+    ? `${memoTime(n.updated_at)} (수정됨)` : memoTime(n.created_at);
+  head.appendChild(el("span", "memo-time", esc(when)));
+
+  const acts  = el("span", "memo-acts");
+  const bEdit = el("button", "memo-btn", "수정");       bEdit.type = "button";
+  const bDel  = el("button", "memo-btn memo-btn-del", "삭제"); bDel.type = "button";
+  acts.append(bEdit, bDel);
+  head.appendChild(acts);
+
+  const body = el("div", "memo-body");
+  body.textContent = n.body;
+  card.append(head, body);
+
+  /* 수정 — 본문을 입력칸으로 바꿔치기 */
+  bEdit.addEventListener("click", () => {
+    const ta = el("textarea", "memo-box memo-box-edit");
+    ta.value = n.body;
+    const row    = el("div", "memo-actions");
+    const save   = el("button", "prep-add-btn", "저장");  save.type = "button";
+    const cancel = el("button", "memo-btn", "취소");      cancel.type = "button";
+    row.append(cancel, save);
+    body.replaceWith(ta); ta.after(row);
+    acts.hidden = true; ta.focus();
+
+    cancel.addEventListener("click", drawNotes);
+    save.addEventListener("click", async () => {
+      const v = ta.value.trim();
+      if (!v) return;
+      save.disabled = true;
+      try {
+        const rows = await supa(`${T.notes}?id=eq.${n.id}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ body: v, updated_at: new Date().toISOString() })
+        });
+        if (rows && rows[0]) Object.assign(n, rows[0]);
+      } catch (e) { console.error(e); }
+      drawNotes();
+    });
+  });
+
+  /* 삭제 — 실수로 지우지 않게 한 번 더 묻습니다 */
+  bDel.addEventListener("click", () => {
+    if (bDel.dataset.armed !== "1") {
+      bDel.dataset.armed = "1";
+      bDel.textContent = "정말 삭제";
+      setTimeout(() => {
+        if (!bDel.isConnected) return;
+        bDel.dataset.armed = ""; bDel.textContent = "삭제";
+      }, 4000);
+      return;
+    }
+    NOTES = NOTES.filter((x) => x.id !== n.id);
+    drawNotes();
+    supa(`${T.notes}?id=eq.${n.id}`, { method: "DELETE" }).catch((e) => console.error(e));
+  });
+
+  return card;
+}
+
 async function renderMemo() {
-  const box = $("#memo-box"); if (!box) return;
   const who = $("#memo-who");
-  if (who) who.textContent = ME ? `${ME} 님의 메모 — 입력을 멈추면 자동 저장됩니다` : "";
-  if (!SUPA || !ME) return;
+  if (who) who.textContent = ME ? `${ME} 님의 메모 — 나만 보입니다` : "";
+  const form = $("#memo-form"); if (!form || !SUPA || !ME) return;
 
   try {
-    const rows = await supa(`${T.memo}?select=body&person=eq.${enc(ME)}`);
-    box.value = rows && rows.length ? rows[0].body : "";
-  } catch (e) { console.error(e); }
+    NOTES = (await supa(`${T.notes}?select=id,body,created_at,updated_at&person=eq.${enc(ME)}&order=id.desc`)) || [];
+  } catch (e) {
+    console.error(e);
+    $("#memo-list").appendChild(emptyBox("메모를 불러오지 못했어요.\n인터넷 연결을 확인해 주세요."));
+    return;
+  }
+  drawNotes();
 
-  let timer = null;
-  box.addEventListener("input", () => {
-    $("#memo-status").textContent = "입력 중…";
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
-      try {
-        await supa(T.memo, {
-          method: "POST",
-          headers: { Prefer: "resolution=merge-duplicates" },
-          body: JSON.stringify({ person: ME, body: box.value, updated_at: new Date().toISOString() })
-        });
-        $("#memo-status").textContent = "저장됨 ✓";
-      } catch (e) {
-        console.error(e);
-        $("#memo-status").textContent = "저장 실패 — 잠시 뒤 다시 시도됩니다";
-      }
-    }, 700);
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const box = $("#memo-box");
+    const v = box.value.trim();
+    if (!v) return;
+    $("#memo-status").textContent = "저장 중…";
+    try {
+      const rows = await supa(T.notes, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ person: ME, body: v })
+      });
+      if (rows && rows[0]) NOTES.unshift(rows[0]);
+      box.value = "";                       // 입력칸은 비우고 아래에 쌓습니다
+      drawNotes();
+      $("#memo-status").textContent = "저장됨 ✓";
+      setTimeout(() => { $("#memo-status").textContent = ""; }, 2000);
+    } catch (e) {
+      console.error(e);
+      $("#memo-status").textContent = "저장 실패 — 다시 눌러주세요";
+    }
   });
 }
 

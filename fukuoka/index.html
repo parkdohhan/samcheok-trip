@@ -210,8 +210,17 @@
     <div class="card">
       <h2 class="sec-title">📝 내 메모</h2>
       <p class="sec-sub" id="memo-who">—</p>
-      <textarea id="memo-box" class="memo-box" placeholder="자유롭게 적어두세요 — 입력을 멈추면 자동 저장됩니다"></textarea>
-      <div class="memo-status" id="memo-status"></div>
+
+      <form id="memo-form" class="memo-form" autocomplete="off">
+        <textarea id="memo-box" class="memo-box" maxlength="4000"
+                  placeholder="메모를 적고 저장을 누르면 아래에 쌓입니다"></textarea>
+        <div class="memo-actions">
+          <span class="memo-status" id="memo-status"></span>
+          <button class="prep-add-btn" type="submit">저장</button>
+        </div>
+      </form>
+
+      <div id="memo-list"></div>
     </div>
   </section>
 

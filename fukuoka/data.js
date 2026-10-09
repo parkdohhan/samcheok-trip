@@ -36,7 +36,7 @@ const TRIP = {
   supabase: {
     url: "https://ooqzmtgbhctsrghjnrda.supabase.co",
     key: "sb_publishable_XBDVF5MAkAhhK2qx3s0pvw_3ntkx17R",
-    tables: { people: "fukuoka_people", checklist: "fukuoka_checklist", memo: "fukuoka_memo" }
+    tables: { people: "fukuoka_people", checklist: "fukuoka_checklist", notes: "fukuoka_notes" }
   },
 
   /* ---------- 2. 확정 예약 ---------- */
